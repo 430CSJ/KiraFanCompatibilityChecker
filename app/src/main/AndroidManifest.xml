@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="ml.w568w.checkxposed">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="moe.csj430.checkkirafancompatibility">
 
+    <uses-sdk tools:overrideLibrary="com.google.android.gms.location, com.google.android.gms.base, com.google.android.gms.places_placereport, com.google.android.gms.tasks, com.google.android.gms.common, android.support.v4, android.support.mediacompat, android.support.fragment, android.support.coreutils, android.support.coreui, android.support.compat, android.arch.lifecycle" />
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -10,13 +12,13 @@
     <uses-permission android:name="android.permission.READ_LOGS" />
 
     <application
-        android:name=".App"
+        android:name="moe.csj430.checkkirafancompatibility.App"
         android:allowBackup="true"
         android:icon="@android:drawable/sym_def_app_icon"
-        android:label="Xposed Checker"
+        android:label="KiraFan Compatibility Checker"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.MainActivity">
+        <activity android:name="moe.csj430.checkkirafancompatibility.ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

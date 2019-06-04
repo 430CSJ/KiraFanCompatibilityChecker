@@ -1,4 +1,4 @@
-package ml.w568w.checkxposed;
+package moe.csj430.checkkirafancompatibility;
 
 import android.app.Application;
 

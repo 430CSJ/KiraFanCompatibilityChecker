@@ -3,15 +3,12 @@
 // (powered by Fernflower decompiler)
 //
 
-package ml.w568w.checkxposed.util;
+package moe.csj430.checkkirafancompatibility.util;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
+
 import java.net.URISyntaxException;
 
 /**

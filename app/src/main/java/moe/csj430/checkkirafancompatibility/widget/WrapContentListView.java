@@ -1,4 +1,4 @@
-package ml.w568w.checkxposed.widget;
+package moe.csj430.checkkirafancompatibility.widget;
 
 import android.content.Context;
 import android.util.AttributeSet;

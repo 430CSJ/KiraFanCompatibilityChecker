@@ -1,10 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">KiraFan Compatibility Checker</string>
+    <string name="app_name_short_0">KRFCompatibilityChecker</string>
+
+    <string name="menu_explanation">说明</string>
+    <string name="green_words">绿字</string>
+    <string name="green_words_expl">表示该因素不会影响KiraFan正常运行\n</string>
+    <string name="yellow_words">黄字</string>
+    <string name="yellow_words_expl">表示该因素可能影响或估计可能影响KiraFan正常运行\n</string>
+    <string name="red_words">红字</string>
+    <string name="red_words_expl">表示该因素会影响KiraFan正常运行</string>
+    <string name="menu_about">关于</string>
+    <string name="menu_checkupdate">检查更新</string>
+
+    <string name="know_it">知道了</string>
+    <string name="i_know_it">我知道了</string>
+
+    <string name="device">设备</string>
+    <string name="device_info_notice">KiraFan对设备总运行内存的要求：2GB以上，建议使用3GB以上运行内存的设备以获得比较稳定的游戏体验。这里显示的运行内存大小为系统能读取到的值，会比设备标称值稍小一些。\nKiraFan可能只支持主流的ARMv8和ARMv7平台。</string>
+    <string name="ram">运行内存</string>
+    <string name="instructionset_supported">支持的指令集</string>
+
+    <string name="android_en">Android</string>
+    <string name="android_info_notice">可安装KiraFan的Android版本：4.2以上。推荐使用Android5.0以上的设备进行游戏。\nUSB调试需处于关闭状态。</string>
+    <string name="version">版本</string>
+    <string name="usb_debug">USB调试</string>
+    <string name="on">开启</string>
+    <string name="off">关闭</string>
+
+    <string name="load_xposed_toolkit">载入Xposed工具类</string>
+    <string name="search_feature_dll">寻找特征动态链接库</string>
+    <string name="code_stack_search_invoker">代码堆栈寻找调起者</string>
+    <string name="check_xposed_install_status">检测Xposed安装情况</string>
+    <string name="judge_system_method_hook">判定系统方法调用钩子</string>
+    <string name="check_virtual_xposed">检测虚拟Xposed环境</string>
+    <string name="search_xposed_runtime_lib">寻找Xposed运行库文件</string>
+    <string name="kernel_search_xposed_link_lib">内核查找Xposed链接库</string>
+    <string name="judge_envir_variable_chara_word">环境变量特征字判断</string>
+    
+    <string name="xposed_and_root">Xposed &amp; Root</string>
+    <string name="xposed_and_root_info_notice">若检测到Xposed或Root，KiraFan将不能正常启动。请尽量不要刷入自带Root或Xposed的ROM，并卸干净装过的Root工具（如SuperSU）和Xposed框架。</string>
+    <string name="root_solution">Root解决方案</string>
+    <string name="root_notice">Magisk v17.2+：https://github.com/topjohnwu/Magisk\nMagisk Hide（需要Android4.4+？）勾选KiraFan，隐藏Magisk Manager。如果已安装Magisk，对本应用进行相同操作后强行停止本应用再打开以查看效果。</string>
+    <string name="xposed_solution">Xposed解决方案</string>
+    <string name="xposed_notice">1. EdXposed v0.2.9.8+：https://github.com/ElderDrivers/EdXposed\n使用EdXposed Installer，选择黑名单/白名单模式，黑名单勾选/白名单不勾选KiraFan。如果已安装EdXposed，对本应用进行相同操作后强行停止本应用再打开以查看效果。\n\n2. 太极：https://github.com/taichi-framework/TaiChi</string>
+    <string name="do_need_root">离不开Root？</string>
+    <string name="do_need_xposed">离不开Xposed？</string>
     <string name="no_xposed">你没有安装 Xposed !</string>
     <string name="found_xposed">你安装了 Xposed ! 可信度: %1$d/%2$d</string>
     <string name="root_check">Root检查</string>
+    <string name="get_error">出错</string>
+    <string name="item_no_root">未发现Root</string>
+    <string name="item_found_root">发现Root</string>
     <string name="item_no_xposed">未发现Xposed</string>
     <string name="item_found_xposed">发现Xposed</string>
-    <string name="about">由w568w开发... 最近微信的事儿闹得纷纷扬扬，这款应用可以让你了解你的防Xposed检测模块到底有没有效果。\\nDEBUG INFO:PID=%1$d</string>
+    <string name="about">由w568w开发... 最近微信的事儿闹得纷纷扬扬，这款应用可以让你了解你的防Xposed检测模块到底有没有效果。\n\nDEBUG INFO:PID=%1$d</string>
     <string name="donation">写这个应用也花了不少时间收集代码, 希望您能给我买根辣条，支持我后续的开发和防检测模块的开发进程...</string>
+
+    <string name="google_suite">Google套件</string>
+    <string name="google_info_notice">若Google服务显示为不可用，可能是Google套件未安装或不完整。请注意：如果缺失Google套件但系统自带Google服务框架，也可能可以正常启动游戏，但不能课金和用Google账号进行引继。\n点击Google服务条目可查看isGooglePlayServicesAvailable的返回值。</string>
+    <string name="google_service">Google服务</string>
+    <string name="well">正常</string>
+    <string name="abnormal">异常</string>
+    <string name="available">可用</string>
+    <string name="update_required">需升级</string>
+    <string name="updating">正在升级</string>
+    <string name="not_available">不可用</string>
+    <string name="return_value">返回值</string>
+
+    <string name="app_list">应用列表</string>
+    <string name="app_list_info_notice">FGO会检测设备是否安装了在其黑名单中的应用（详见 https://medium.com/@topjohnwu/from-anime-game-to-android-system-security-vulnerability-9b955a182f20 ），KiraFan大概用的是同一套检测系统。如果该设备上有安装黑名单中的应用，这里会显示出来。\n如果Magisk Manager被检测到，请在其设置中选择隐藏Magisk Manager。</string>
+    <string name="black_list_apps_not_found">未发现黑名单应用</string>
+    
+    <string name="about___">关于……</string>
+    <string name="about_kfcc">关于KiraFan Compatibility Checker</string>
+    <string name="about_kfcc_message">一个帮助排查导致KiraFan Android客户端运行异常的原因的小工具。\n\n作者@430CSJ的留言：\n虽然这项目是拿Xposed Checker改的，Xposed和Root的检测也是直接照搬原有的代码，只是加了些说明和面向百度编程加了几项检测，改了个简陋的UI，也还没想好之后还有什么能更新的，琪拉拉肝不动又氪不起，代码又不会写，菜的要死，但还是厚颜无耻的说一句：我很可爱，请给我钱，如果感觉本项目对你会有帮助的话……</string>
+    <string name="about_kfcc_origin">KiraFan Compatibility Checker的产生离不开@w568w的Xposed Checker：https://github.com/w568w/XposedChecker</string>
+    <string name="about_xposed_checker">关于Xposed Checker</string>
+    <string name="xposed_checker_version">5</string>
+    <string name="support_origin_author">捐赠支持原作者</string>
+    <string name="about_donate_w568w">关于捐赠@w568w</string>
+    <string name="alipay_donate">支付宝捐赠</string>
+    <string name="alipay_pay">支付宝打钱</string>
+    <string name="view_how_water_the_project">先看看这项目多氵</string>
+    <string name="not_give">不给</string>
+    <string name="seem_no_alipay_0">朋友你看起来大概是没有安装支付宝...</string>
+    <string name="seem_no_alipay_1">似乎未安装支付宝……</string>
+
+    <string name="update_already_latest">已安装最新版本</string>
+    <string name="update_new_seg1">版本</string>
+    <string name="update_new_seg3">更新取消</string>
+    <string name="update_new_seg2">准备下载</string>
+    <string name="update_error">更新出错</string>
+    <string name="avail_update_found">发现新版本：</string>
+    <string name="do_update">是否更新？</string>
+    <string name="download_and_update">下载并更新</string>
+    <string name="cancel_update">不更新</string>
+    <string name="view_update_log">查看更新日志</string>
 </resources>
