@@ -30,7 +30,7 @@ public class UpdateTask extends AsyncTask<String, String, String> {
         this.context = context;
         this.isUpdateOnRelease = needUpdate;
         this.toShowToast = showToast;
-        if (this.isUpdateOnRelease && this.toShowToast) Toast.makeText(context, "正在检查新版本……", Toast.LENGTH_SHORT).show();
+        if (this.isUpdateOnRelease && this.toShowToast) Toast.makeText(context, context.getResources().getString(R.string.checking_new_version), Toast.LENGTH_SHORT).show();
     }
 
     @Override

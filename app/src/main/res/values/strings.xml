@@ -74,21 +74,23 @@
     
     <string name="about___">关于……</string>
     <string name="about_kfcc">关于KiraFan Compatibility Checker</string>
-    <string name="about_kfcc_message">一个帮助排查导致KiraFan Android客户端运行异常的原因的小工具。\n\n作者@430CSJ的留言：\n虽然这项目是拿Xposed Checker改的，Xposed和Root的检测也是直接照搬原有的代码，只是加了些说明和面向百度编程加了几项检测，改了个简陋的UI，也还没想好之后还有什么能更新的，琪拉拉肝不动又氪不起，代码又不会写，菜的要死，但还是厚颜无耻的说一句：我很可爱，请给我钱，如果感觉本项目对你会有帮助的话……</string>
+    <string name="about_kfcc_message">一个帮助排查导致KiraFan Android客户端运行异常的原因的小工具 By 430CSJ。\n\n虽然这项目是拿Xposed Checker改的，Xposed和Root的检测也是直接照搬原有的代码，只是加了些说明和面向百度编程加了几项检测，改了个简陋的UI，也还没想好之后还有什么能更新的，琪拉拉肝不动又氪不起，代码又不会写，菜的抠脚，但如果感觉本项目对你会有帮助的话，可以考虑……</string>
     <string name="about_kfcc_origin">KiraFan Compatibility Checker的产生离不开@w568w的Xposed Checker：https://github.com/w568w/XposedChecker</string>
     <string name="about_xposed_checker">关于Xposed Checker</string>
     <string name="xposed_checker_version">5</string>
     <string name="support_origin_author">捐赠支持原作者</string>
     <string name="about_donate_w568w">关于捐赠@w568w</string>
     <string name="alipay_donate">支付宝捐赠</string>
-    <string name="alipay_pay">支付宝打钱</string>
+    <string name="alipay_pay">支付宝打钱！</string>
     <string name="view_how_water_the_project">先看看这项目多氵</string>
     <string name="not_give">不给</string>
+    <string name="do_not_say_any_more">别说了。</string>
     <string name="seem_no_alipay_0">朋友你看起来大概是没有安装支付宝...</string>
     <string name="seem_no_alipay_1">似乎未安装支付宝……</string>
 
     <string name="update_already_latest">已安装最新版本</string>
     <string name="update_new_seg1">版本</string>
+    <string name="checking_new_version">正在检查新版本……</string>
     <string name="update_new_seg3">更新取消</string>
     <string name="update_new_seg2">准备下载</string>
     <string name="update_error">更新出错</string>

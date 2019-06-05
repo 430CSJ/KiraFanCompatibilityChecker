@@ -48,6 +48,7 @@ import java.util.concurrent.FutureTask;
 
 import de.robv.android.xposed.XposedBridge;
 import moe.csj430.checkkirafancompatibility.R;
+import moe.csj430.checkkirafancompatibility.UpdateTask;
 import moe.csj430.checkkirafancompatibility.util.AlipayDonate;
 
 import static moe.csj430.checkkirafancompatibility.DeviceInfo.*;
@@ -428,6 +429,8 @@ public class MainActivity extends AppCompatActivity {
                 textView.setText(R.string.no_xposed);
             }
         }
+
+        new UpdateTask(MainActivity.this, true, false).update();
     }
 
     @Override
@@ -448,14 +451,15 @@ public class MainActivity extends AppCompatActivity {
                 new AlertDialog.Builder(MainActivity.this).setTitle(R.string.menu_explanation).setView(explanation_dialog_view).setPositiveButton(R.string.know_it, null).show();
                 break;
             case R.id.id_menu_check_update:
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/430CSJ/KiraFanCompatibilityChecker/releases")));
+                new UpdateTask(MainActivity.this, true, true).update();
                 break;
             case R.id.id_menu_about:
                 View about_dialog_view = View.inflate(MainActivity.this, R.layout.about_dialog, null);
-                TextView about_dialog_textviews[] = new TextView[3];
+                TextView about_dialog_textviews[] = new TextView[4];
                 about_dialog_textviews[0] = (TextView)about_dialog_view.findViewById(R.id.about_xposed_checker);
                 about_dialog_textviews[1] = (TextView)about_dialog_view.findViewById(R.id.support_origin_author);
                 about_dialog_textviews[2] = (TextView)about_dialog_view.findViewById(R.id.about_kfcc);
+                about_dialog_textviews[3] = (TextView)about_dialog_view.findViewById(R.id.view_update_log);
                 for (int tvi = 0; tvi < about_dialog_textviews.length; tvi++) {
                     if (about_dialog_textviews[tvi] != null) {
                         about_dialog_textviews[tvi].getPaint().setAntiAlias(true);
@@ -482,6 +486,14 @@ public class MainActivity extends AppCompatActivity {
                                     @Override
                                     public void onClick(View view) {
                                         about_kfcc(view);
+                                    }
+                                });
+                                break;
+                            case 3:
+                                about_dialog_textviews[tvi].setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/430CSJ/KiraFanCompatibilityChecker/releases")));
                                     }
                                 });
                                 break;
@@ -546,7 +558,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        new AlertDialog.Builder(MainActivity.this).setTitle(getResources().getString(R.string.about_kfcc) + " " + app_ver).setMessage(R.string.about_kfcc_message).setPositiveButton(R.string.not_give, null).setNegativeButton(R.string.view_how_water_the_project, new DialogInterface.OnClickListener() {
+        new AlertDialog.Builder(MainActivity.this).setTitle(getResources().getString(R.string.about_kfcc) + " " + app_ver).setMessage(R.string.about_kfcc_message).setPositiveButton(R.string.do_not_say_any_more, null).setNegativeButton(R.string.view_how_water_the_project, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/430CSJ/KiraFanCompatibilityChecker")));

@@ -51,5 +51,14 @@
             android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/view_update_log"
+            android:text="@string/view_update_log"
+            android:clickable="true"
+            android:focusable="true"
+            android:textColor="#0099cc"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 </RelativeLayout>
