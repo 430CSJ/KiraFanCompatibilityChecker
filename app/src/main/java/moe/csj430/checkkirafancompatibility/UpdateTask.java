@@ -80,7 +80,7 @@ public class UpdateTask extends AsyncTask<String, String, String> {
                 }
                 final JSONObject frelease = release;
                 final String flatestVersion = latestVersion;
-                new AlertDialog.Builder(context).setTitle(R.string.avail_update_found + latestVersion).setMessage(R.string.do_update).setPositiveButton(R.string.download_and_update, new DialogInterface.OnClickListener() {
+                new AlertDialog.Builder(context).setTitle(context.getResources().getString(R.string.avail_update_found) + latestVersion).setMessage(R.string.do_update).setPositiveButton(R.string.download_and_update, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         // Need update.

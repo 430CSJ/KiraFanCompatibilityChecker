@@ -8,8 +8,8 @@ android {
         applicationId "moe.csj430.checkkirafancompatibility"
         minSdkVersion 10
         targetSdkVersion 23
-        versionCode 10100
-        versionName "1.1.0"
+        versionCode 10110
+        versionName "1.1.1"
     }
     buildTypes {
         release {
