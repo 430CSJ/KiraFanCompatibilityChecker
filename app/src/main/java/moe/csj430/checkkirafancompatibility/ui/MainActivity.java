@@ -1,6 +1,7 @@
 package moe.csj430.checkkirafancompatibility.ui;
 
 import android.annotation.TargetApi;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,6 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
+import android.provider.Settings;
 import android.support.annotation.Keep;
 import android.support.v7.view.SupportMenuInflater;
 import android.support.v7.app.AlertDialog;
@@ -275,6 +277,31 @@ public class MainActivity extends AppCompatActivity {
                         if (isUsbDebugOn(getApplicationContext())) {
                             textView2.setText(R.string.on);
                             textView2.setTextColor(Color.RED);
+                            layout.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    try {
+                                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
+                                        startActivity(intent);
+                                    } catch (Exception e) {
+                                        try {
+                                            ComponentName componentName = new ComponentName("com.android.settings", "com.android.settings.DevelopmentSettings");
+                                            Intent intent = new Intent();
+                                            intent.setComponent(componentName);
+                                            intent.setAction("android.intent.action.View");
+                                            startActivity(intent);
+                                        } catch (Exception e1) {
+                                            try {
+                                                Intent intent = new Intent("com.android.settings.APPLICATION_DEVELOPMENT_SETTINGS");//部分小米手机采用这种方式跳转
+                                                startActivity(intent);
+                                            } catch (Exception e2) {
+                                                e2.printStackTrace();
+                                            }
+
+                                        }
+                                    }
+                                }
+                            });
                         } else {
                             textView2.setText(R.string.off);
                             textView2.setTextColor(Color.GREEN);
