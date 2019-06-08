@@ -58,7 +58,7 @@
     <string name="donation">写这个应用也花了不少时间收集代码, 希望您能给我买根辣条，支持我后续的开发和防检测模块的开发进程...</string>
 
     <string name="google_suite">Google套件</string>
-    <string name="google_info_notice">若Google服务显示为不可用，可能是Google套件未安装、不完整或需要更新。请注意：如果缺失Google套件但系统自带Google服务框架，也可能可以正常启动游戏，但不能课金和用Google账号进行引继。\n点击Google服务条目可查看isGooglePlayServicesAvailable的返回值。</string>
+    <string name="google_info_notice">若Google服务显示为不可用，可能是Google套件未安装、不完整或需要更新。请注意：如果缺失Google套件但系统自带Google服务框架，也可能可以正常启动游戏，但不能课金和用Google账号进行引继。\n点击Google服务条目可查看isGooglePlayServicesAvailable的返回值，如果存在问题还会弹出Google服务的错误对话框。</string>
     <string name="google_service">Google服务</string>
     <string name="well">正常</string>
     <string name="abnormal">异常</string>

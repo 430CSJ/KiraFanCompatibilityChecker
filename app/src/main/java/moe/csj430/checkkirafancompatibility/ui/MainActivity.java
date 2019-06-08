@@ -31,6 +31,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.jrummyapps.android.shell.CommandResult;
 import com.jrummyapps.android.shell.Shell;
 import com.unionpay.mobile.device.utils.RootCheckerUtils;
@@ -395,8 +396,11 @@ public class MainActivity extends AppCompatActivity {
                     layout.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Toast toast = Toast.makeText(MainActivity.this, getResources().getString(R.string.return_value) + ": " + String.valueOf(gsrecode), Toast.LENGTH_SHORT);
+                            Toast toast = Toast.makeText(MainActivity.this, getResources().getString(R.string.return_value) + ": " + gsrecode, Toast.LENGTH_SHORT);
                             toast.show();
+                            GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
+                            if (googleApiAvailability.isUserResolvableError(gsrecode))
+                                googleApiAvailability.getErrorDialog(MainActivity.this, gsrecode, 8996).show();
                         }
                     });
                     return layout;
