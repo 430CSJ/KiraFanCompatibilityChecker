@@ -3,8 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="moe.csj430.checkkirafancompatibility">
 
-    <uses-sdk tools:overrideLibrary="com.google.android.gms.location, com.google.android.gms.base, com.google.android.gms.places_placereport, com.google.android.gms.tasks, com.google.android.gms.common, android.support.v4, android.support.mediacompat, android.support.fragment, android.support.coreutils, android.support.coreui, android.support.compat, android.arch.lifecycle" />
-
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

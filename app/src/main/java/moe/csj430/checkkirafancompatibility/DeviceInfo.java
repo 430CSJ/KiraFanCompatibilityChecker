@@ -243,8 +243,6 @@ public class DeviceInfo {
     }
 
     public static int isGoogleServiceAvailable(Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-            return ConnectionResult.SERVICE_MISSING;
         GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
         int resultcode = googleApiAvailability.isGooglePlayServicesAvailable(context);
         return resultcode;
