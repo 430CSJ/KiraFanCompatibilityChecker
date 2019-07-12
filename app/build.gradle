@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 28
     useLibrary 'org.apache.http.legacy'
     defaultConfig {
         applicationId "moe.csj430.checkkirafancompatibility"
         minSdkVersion 14
-        targetSdkVersion 23
-        versionCode 10300
-        versionName "1.3.0"
+        targetSdkVersion 28
+        versionCode 10404
+        versionName "1.4.0"
     }
     buildTypes {
         release {
@@ -25,14 +25,14 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:23.+'
-    provided 'de.robv.android.xposed:api:53'
-    compile 'com.android.support:cardview-v7:23.+'
-    compile 'com.tencent.bugly:crashreport:latest.release'
-    compile('com.jrummyapps:android-shell:1.0.1@aar') {
+    api fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    compileOnly 'de.robv.android.xposed:api:53'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'com.tencent.bugly:crashreport:latest.release'
+    implementation('com.jrummyapps:android-shell:1.0.1@aar') {
         transitive = true;
         exclude group: 'com.android.support', module: 'support-annotations'
     }
-    compile 'com.google.android.gms:play-services-location:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
 }

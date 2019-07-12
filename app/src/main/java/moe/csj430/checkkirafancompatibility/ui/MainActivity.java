@@ -2,7 +2,6 @@ package moe.csj430.checkkirafancompatibility.ui;
 
 import android.annotation.TargetApi;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -13,11 +12,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
 import android.provider.Settings;
-import android.support.annotation.Keep;
-import android.support.v7.view.SupportMenuInflater;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.text.Html;
+import androidx.annotation.Keep;
+import androidx.appcompat.view.SupportMenuInflater;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -154,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
             xposedRootInfoButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    View xposed_root_dialog_view = View.inflate(getApplicationContext(), R.layout.xposed_root_dialog, null);
+                    View xposed_root_dialog_view = View.inflate(MainActivity.this, R.layout.xposed_root_dialog, null);
                     ((Button)xposed_root_dialog_view.findViewById(R.id.root_guide)).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -199,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
                 public View getView(int i, View view, ViewGroup viewGroup) {
-                    RelativeLayout layout = (RelativeLayout) LayoutInflater.from(getApplicationContext()).inflate(R.layout.items, null);
+                    RelativeLayout layout = (RelativeLayout) LayoutInflater.from(MainActivity.this).inflate(R.layout.items, null);
                     TextView textView1 = (TextView) layout.findViewById(R.id.check_item);
                     TextView textView2 = (TextView) layout.findViewById(R.id.check_result);
                     if (i == 0) {
@@ -475,7 +473,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.id_menu_explanation:
-                View explanation_dialog_view = View.inflate(getApplicationContext(), R.layout.explanation_dialog, null);
+                View explanation_dialog_view = View.inflate(MainActivity.this, R.layout.explanation_dialog, null);
                 ((TextView)explanation_dialog_view.findViewById(R.id.green_words)).setTextColor(Color.GREEN);
                 ((TextView)explanation_dialog_view.findViewById(R.id.yellow_words)).setTextColor(Color.YELLOW);
                 ((TextView)explanation_dialog_view.findViewById(R.id.red_words)).setTextColor(Color.RED);
