@@ -49,11 +49,11 @@ import java.util.concurrent.FutureTask;
 
 import de.robv.android.xposed.XposedBridge;
 import moe.csj430.checkkirafancompatibility.R;
+import moe.csj430.checkkirafancompatibility.SystemPropertiesProxy;
 import moe.csj430.checkkirafancompatibility.UpdateTask;
 import moe.csj430.checkkirafancompatibility.util.AlipayDonate;
 
 import static moe.csj430.checkkirafancompatibility.DeviceInfo.*;
-import static moe.csj430.checkkirafancompatibility.SystemPropertiesProxy.*;
 
 /**
  * @author w568w
@@ -244,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
             androidListView.setAdapter(new BaseAdapter() {
                 @Override
                 public int getCount() {
-                    return 3;
+                    return 5;
                 }
 
                 @Override
@@ -273,15 +273,33 @@ public class MainActivity extends AppCompatActivity {
                             textView2.setTextColor(Color.GREEN);
                     }
                     else if (i == 1) {
+                        textView1.setText("ro.build.type");
+                        String ro_build_type = SystemPropertiesProxy.getString(getApplicationContext(), "ro.build.type");
+                        textView2.setText(ro_build_type);
+                        if (ro_build_type.equals("eng"))
+                            textView2.setTextColor(Color.RED);
+                        else
+                            textView2.setTextColor(Color.GREEN);
+                    }
+                    else if (i == 2) {
                         textView1.setText("ro.debuggable");
-                        int ro_debuggable = getInt(getApplicationContext(), "ro.debuggable", 0);
+                        int ro_debuggable = SystemPropertiesProxy.getInt(getApplicationContext(), "ro.debuggable", 0);
                         textView2.setText(String.valueOf(ro_debuggable));
                         if (ro_debuggable == 0)
                             textView2.setTextColor(Color.GREEN);
                         else
                             textView2.setTextColor(Color.RED);
                     }
-                    else if (i == 2) {
+                    else if (i == 3) {
+                        textView1.setText("ro.secure");
+                        int ro_secure = SystemPropertiesProxy.getInt(getApplicationContext(), "ro.secure", 0);
+                        textView2.setText(String.valueOf(ro_secure));
+                        if (ro_secure == 0)
+                            textView2.setTextColor(Color.RED);
+                        else
+                            textView2.setTextColor(Color.GREEN);
+                    }
+                    else if (i == 4) {
                         textView1.setText(R.string.usb_debug);
                         if (isUsbDebugOn(getApplicationContext())) {
                             textView2.setText(R.string.on);
