@@ -5,15 +5,15 @@ import android.app.Application;
 import com.tencent.bugly.crashreport.CrashReport;
 
 /**
- * Created by w568w on 18-6-23.
+ * Created by 430CSJ on 19-7-13.
  *
- * @author w568w
+ * @author 430CSJ
  */
 
 public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        CrashReport.initCrashReport(getApplicationContext(), "3a78258328", false);
+        CrashReport.initCrashReport(getApplicationContext(), "557ff46e02", false);
     }
 }
