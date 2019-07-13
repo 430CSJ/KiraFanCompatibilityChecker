@@ -53,6 +53,7 @@ import moe.csj430.checkkirafancompatibility.UpdateTask;
 import moe.csj430.checkkirafancompatibility.util.AlipayDonate;
 
 import static moe.csj430.checkkirafancompatibility.DeviceInfo.*;
+import static moe.csj430.checkkirafancompatibility.SystemPropertiesProxy.*;
 
 /**
  * @author w568w
@@ -243,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
             androidListView.setAdapter(new BaseAdapter() {
                 @Override
                 public int getCount() {
-                    return 2;
+                    return 3;
                 }
 
                 @Override
@@ -272,6 +273,15 @@ public class MainActivity extends AppCompatActivity {
                             textView2.setTextColor(Color.GREEN);
                     }
                     else if (i == 1) {
+                        textView1.setText("ro.debuggable");
+                        int ro_debuggable = getInt(getApplicationContext(), "ro.debuggable", 0);
+                        textView2.setText(String.valueOf(ro_debuggable));
+                        if (ro_debuggable == 0)
+                            textView2.setTextColor(Color.GREEN);
+                        else
+                            textView2.setTextColor(Color.RED);
+                    }
+                    else if (i == 2) {
                         textView1.setText(R.string.usb_debug);
                         if (isUsbDebugOn(getApplicationContext())) {
                             textView2.setText(R.string.on);
