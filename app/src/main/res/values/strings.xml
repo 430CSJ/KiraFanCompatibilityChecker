@@ -22,7 +22,13 @@
     <string name="instructionset_supported">支持的指令集</string>
 
     <string name="android_en">Android</string>
-    <string name="android_info_notice">可安装KiraFan的Android版本：4.2以上。推荐使用Android5.0以上的设备进行游戏。\nUSB调试需处于关闭状态。\n若USB调试处于开启状态，可点击USB调试条目直接打开开发者选项页面。</string>
+    <string name="android_info_notice">可安装KiraFan的Android版本：4.2以上。推荐使用Android5.0以上的设备进行游戏。\n若检测到系统一些属性为特定的值，KiraFan将不能正常启动。\nUSB调试需处于关闭状态。若USB调试处于开启状态，可点击USB调试条目直接打开开发者选项页面。</string>
+    <string name="system_prop_detail">系统属性值详情</string>
+    <string name="system_prop">系统属性值</string>
+    <string name="system_prop_notice">已确认的要求：\npersist.sys.usb.config不能为adb\nro.build.type不能为eng\nro.debuggable需为0\nro.secure不能为0</string>
+    <string name="how_to_modify_system_prop">如何修改系统属性值</string>
+    <string name="method_to_modify_system_prop">修改系统属性值的方法</string>
+    <string name="method_to_modify_system_prop_notice">方法一（推荐）：\n使用Magisk的resetprop：\n在终端模拟器输入su获取root权限，然后输入 resetprop 要修改的属性名 期望的属性值 即可，如果不想每次开机都输一遍可以把命令保存为一个sh文件存至/data/adb/post-fs-data.d/，改权限为0755，开机时Magisk会自动执行。\n\n方法二：\n参考 http://nga.178.com/read.php?tid=12443703 。</string>
     <string name="version">版本</string>
     <string name="usb_debug">USB调试</string>
     <string name="on">开启</string>

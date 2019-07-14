@@ -137,7 +137,17 @@ public class MainActivity extends AppCompatActivity {
             androidInfoButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    new AlertDialog.Builder(MainActivity.this).setTitle(R.string.android_en).setMessage(R.string.android_info_notice).setPositiveButton(R.string.know_it, null).show();
+                    new AlertDialog.Builder(MainActivity.this).setTitle(R.string.android_en).setMessage(R.string.android_info_notice).setNeutralButton(R.string.system_prop_detail, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            new AlertDialog.Builder(MainActivity.this).setTitle(R.string.system_prop).setMessage(R.string.system_prop_notice).setNeutralButton(R.string.how_to_modify_system_prop, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    new AlertDialog.Builder(MainActivity.this).setTitle(R.string.method_to_modify_system_prop).setView(R.layout.method_to_modify_system_prop_dialog).setPositiveButton(R.string.know_it, null).show();
+                                }
+                            }).setPositiveButton(R.string.know_it, null).show();
+                        }
+                    }).setPositiveButton(R.string.know_it, null).show();
                 }
             });
         }
