@@ -244,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
             androidListView.setAdapter(new BaseAdapter() {
                 @Override
                 public int getCount() {
-                    return 5;
+                    return 6;
                 }
 
                 @Override
@@ -273,6 +273,15 @@ public class MainActivity extends AppCompatActivity {
                             textView2.setTextColor(Color.GREEN);
                     }
                     else if (i == 1) {
+                        textView1.setText("persist.sys.usb.config");
+                        String persist_sys_usb_config = SystemPropertiesProxy.getString(getApplicationContext(), "persist.sys.usb.config");
+                        textView2.setText(persist_sys_usb_config);
+                        if (persist_sys_usb_config.equals("adb"))
+                            textView2.setTextColor(Color.RED);
+                        else
+                            textView2.setTextColor(Color.GREEN);
+                    }
+                    else if (i == 2) {
                         textView1.setText("ro.build.type");
                         String ro_build_type = SystemPropertiesProxy.getString(getApplicationContext(), "ro.build.type");
                         textView2.setText(ro_build_type);
@@ -281,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
                         else
                             textView2.setTextColor(Color.GREEN);
                     }
-                    else if (i == 2) {
+                    else if (i == 3) {
                         textView1.setText("ro.debuggable");
                         int ro_debuggable = SystemPropertiesProxy.getInt(getApplicationContext(), "ro.debuggable", 0);
                         textView2.setText(String.valueOf(ro_debuggable));
@@ -290,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
                         else
                             textView2.setTextColor(Color.RED);
                     }
-                    else if (i == 3) {
+                    else if (i == 4) {
                         textView1.setText("ro.secure");
                         int ro_secure = SystemPropertiesProxy.getInt(getApplicationContext(), "ro.secure", 0);
                         textView2.setText(String.valueOf(ro_secure));
@@ -299,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
                         else
                             textView2.setTextColor(Color.GREEN);
                     }
-                    else if (i == 4) {
+                    else if (i == 5) {
                         textView1.setText(R.string.usb_debug);
                         if (isUsbDebugOn(getApplicationContext())) {
                             textView2.setText(R.string.on);
