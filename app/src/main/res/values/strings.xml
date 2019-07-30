@@ -15,12 +15,14 @@
 
     <string name="know_it">知道了</string>
     <string name="i_know_it">我知道了</string>
+    <string name="let_it_go_0">先不管</string>
 
     <string name="device">设备</string>
     <string name="device_info_notice">KiraFan对设备总运行内存的要求：2GB以上，建议使用3GB以上运行内存的设备以获得比较稳定的游戏体验。这里显示的运行内存大小为系统能读取到的值，会比设备标称值稍小一些。\nKiraFan可能只支持主流的ARMv8和ARMv7平台。</string>
     <string name="ram">运行内存</string>
     <string name="instructionset_supported">支持的指令集</string>
 
+    <string name="system">系统</string>
     <string name="android_en">Android</string>
     <string name="android_info_notice">可安装KiraFan的Android版本：4.2以上。推荐使用Android5.0以上的设备进行游戏。\n若检测到系统一些属性为特定的值，KiraFan将不能正常启动。\nUSB调试需处于关闭状态。若USB调试处于开启状态，可点击USB调试条目直接打开开发者选项页面。</string>
     <string name="system_prop_detail">系统属性值详情</string>
@@ -46,10 +48,11 @@
     
     <string name="xposed_and_root">Xposed &amp; Root</string>
     <string name="xposed_and_root_info_notice">若检测到Xposed或Root，KiraFan将不能正常启动。请尽量不要刷入自带Root或Xposed的ROM，并卸干净装过的Root工具（如SuperSU）和Xposed框架。</string>
+    <string name="xposed_root_refresh_notice">Xposed &amp; Root检测结果可能需要重启本应用乃至设备才能刷新。</string>
     <string name="root_solution">Root解决方案</string>
     <string name="root_notice">Magisk v17.2+：https://github.com/topjohnwu/Magisk\nMagisk Hide（需要Android4.4+？）勾选KiraFan，隐藏Magisk Manager。如果已安装Magisk，对本应用进行相同操作后强行停止本应用再打开以查看效果。</string>
     <string name="xposed_solution">Xposed解决方案</string>
-    <string name="xposed_notice">1. EdXposed v0.2.9.8+：https://github.com/ElderDrivers/EdXposed\n使用EdXposed Installer，选择黑名单/白名单模式，黑名单勾选/白名单不勾选KiraFan。如果已安装EdXposed，对本应用进行相同操作后强行停止本应用再打开以查看效果。\n\n2. 太极：https://github.com/taichi-framework/TaiChi</string>
+    <string name="xposed_notice">1. EdXposed：https://github.com/ElderDrivers/EdXposed\n实测最新版EdXposed不做额外设置也可避免被应用检测到Xposed。\n若仍被检测到Xposed，建议使用EdXposed Manager，选择应用名单/白名单模式，黑名单勾选/白名单不勾选KiraFan，并对本应用进行相同操作后强行停止本应用再打开以查看效果。\n\n2. 太极：https://github.com/taichi-framework/TaiChi</string>
     <string name="do_need_root">离不开Root？</string>
     <string name="do_need_xposed">离不开Xposed？</string>
     <string name="no_xposed">你没有安装 Xposed !</string>
@@ -62,6 +65,7 @@
     <string name="item_found_xposed">发现Xposed</string>
     <string name="about">由w568w开发... 最近微信的事儿闹得纷纷扬扬，这款应用可以让你了解你的防Xposed检测模块到底有没有效果。\n\nDEBUG INFO:PID=%1$d</string>
     <string name="donation">写这个应用也花了不少时间收集代码, 希望您能给我买根辣条，支持我后续的开发和防检测模块的开发进程...</string>
+    <string name="project_homepage">项目主页</string>
 
     <string name="google_suite">Google套件</string>
     <string name="google_info_notice">若Google服务显示为不可用，可能是Google套件未安装、不完整或需要更新。请注意：如果缺失Google套件但系统自带Google服务框架，也可能可以正常启动游戏，但不能课金和用Google账号进行引继。\n点击Google服务条目可查看isGooglePlayServicesAvailable的返回值，如果存在问题还会弹出Google服务的错误对话框。</string>
@@ -76,18 +80,24 @@
 
     <string name="app_list">应用列表</string>
     <string name="app_list_info_notice">FGO会检测设备是否安装了在其黑名单中的应用（详见 https://medium.com/@topjohnwu/from-anime-game-to-android-system-security-vulnerability-9b955a182f20 ），KiraFan大概用的是同一套检测系统。如果该设备上有安装黑名单中的应用，这里会显示出来。\n如果Magisk Manager被检测到，请在其设置中选择隐藏Magisk Manager。</string>
+    <string name="magisk_manager_detected">检测到Magisk Manager</string>
+    <string name="magisk_manager_advice">建议在其设置中选择隐藏Magisk Manager。</string>
+    <string name="open_magisk_manager">打开Magisk Manager</string>
+    <string name="uninstall_directly">直接卸载</string>
     <string name="black_list_apps_not_found">未发现黑名单应用</string>
     
     <string name="about___">关于……</string>
     <string name="about_kfcc">关于KiraFan Compatibility Checker</string>
-    <string name="about_kfcc_message">一个帮助排查导致KiraFan Android客户端运行异常的原因的小工具 By 430CSJ。\n\n虽然这项目是拿Xposed Checker改的，Xposed和Root的检测也是直接照搬原有的代码，只是加了些说明和面向百度编程加了几项检测，改了个简陋的UI，也还没想好之后还有什么能更新的，琪拉拉肝不动又氪不起，代码又不会写，菜的抠脚，但如果感觉本项目对你会有帮助的话，可以考虑……</string>
-    <string name="about_kfcc_origin">KiraFan Compatibility Checker的产生离不开@w568w的Xposed Checker：https://github.com/w568w/XposedChecker</string>
+    <string name="special_thanks">特别鸣谢</string>
+    <string name="special_thanks__">特别鸣谢……</string>
+    <string name="about_kfcc_message">一个帮助排查导致KiraFan Android客户端运行异常的原因的小工具 By 430CSJ。\n\n虽然这项目是拿Xposed Checker改的，Xposed和Root的检测也是直接照搬原有的代码，只是加了些说明和面向百度编程加了些检测，改了个更直观的UI，暂时没想到还有什么能更新的，琪拉拉肝不动又氪不起，代码又不会写，菜的抠脚。不过收集整理代码和改UI也花了不少时间，现有的检测项目也基本覆盖到了我找到的因素。如果感觉本项目对你会有帮助的话，可以考虑给我打钱倒杯卡布奇诺……</string>
+    <string name="about_kfcc_origin">KiraFan Compatibility Checker的产生离不开@w568w的Xposed Checker。</string>
     <string name="about_xposed_checker">关于Xposed Checker</string>
     <string name="xposed_checker_version">5</string>
-    <string name="support_origin_author">捐赠支持原作者</string>
+    <string name="support_origin_author">捐赠支持w568w</string>
     <string name="about_donate_w568w">关于捐赠@w568w</string>
     <string name="alipay_donate">支付宝捐赠</string>
-    <string name="alipay_pay">支付宝打钱！</string>
+    <string name="alipay_pay">支付宝打钱</string>
     <string name="view_how_water_the_project">先看看这项目多氵</string>
     <string name="not_give">不给</string>
     <string name="do_not_say_any_more">别说了。</string>

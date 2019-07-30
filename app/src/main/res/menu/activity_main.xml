@@ -2,16 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:kfcc="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/id_menu_explanation"
-        android:icon="@android:drawable/ic_menu_info_details"
+        android:icon="@drawable/baseline_info_24"
         android:title="@string/menu_explanation"
         kfcc:showAsAction="ifRoom|withText" />
     <item
         android:id="@+id/id_menu_check_update"
-        android:icon="@android:drawable/ic_menu_upload"
+        android:icon="@drawable/baseline_update_24"
         android:title="@string/menu_checkupdate"
         kfcc:showAsAction="never" />
     <item android:id="@+id/id_menu_about"
-        android:icon="@android:drawable/ic_menu_help"
+        android:icon="@drawable/baseline_help_24"
         android:title="@string/menu_about"
         kfcc:showAsAction="never" />
 </menu>

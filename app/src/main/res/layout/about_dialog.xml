@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <LinearLayout
@@ -9,46 +9,10 @@
         android:layout_alignParentTop="true"
         android:padding="10dp"
         android:orientation="vertical">
-        <TextView
-            android:text="@string/about_kfcc_origin"
-            android:clickable="true"
-            android:focusable="true"
-            android:autoLink="all"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:text=" "
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/about_xposed_checker"
-            android:text="@string/about_xposed_checker"
-            android:clickable="true"
-            android:focusable="true"
-            android:textColor="#0099cc"
+        <com.google.android.material.button.MaterialButton
             android:gravity="center"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/support_origin_author"
-            android:text="@string/support_origin_author"
-            android:clickable="true"
-            android:focusable="true"
-            android:textColor="#0099cc"
-            android:gravity="center"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:text=" "
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/about_kfcc"
-            android:text="@string/about_kfcc"
-            android:clickable="true"
-            android:focusable="true"
-            android:textColor="#0099cc"
-            android:gravity="center"
+            android:id="@+id/special_thanks_bt"
+            android:text="@string/special_thanks__"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
         <TextView
@@ -60,5 +24,15 @@
             android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+        <TextView
+            android:text=" "
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:text="@string/about_kfcc_message"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
     </LinearLayout>
-</RelativeLayout>
+</ScrollView>
