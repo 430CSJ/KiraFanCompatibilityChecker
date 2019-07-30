@@ -79,7 +79,7 @@
     <string name="return_value">返回值</string>
 
     <string name="app_list">应用列表</string>
-    <string name="app_list_info_notice">FGO会检测设备是否安装了在其黑名单中的应用（详见 https://medium.com/@topjohnwu/from-anime-game-to-android-system-security-vulnerability-9b955a182f20 ），KiraFan大概用的是同一套检测系统。如果该设备上有安装黑名单中的应用，这里会显示出来。\n如果Magisk Manager被检测到，请在其设置中选择隐藏Magisk Manager。</string>
+    <string name="app_list_info_notice">FGO会检测设备是否安装了在其黑名单中的应用（详见 https://medium.com/@topjohnwu/from-anime-game-to-android-system-security-vulnerability-9b955a182f20 ），KiraFan大概用的是同一套检测系统。如果该设备上有安装黑名单中的应用，这里会显示出来。点击显示出来的应用条目可选择直接卸载该应用。\n如果Magisk Manager被检测到，请在其设置中选择隐藏Magisk Manager。</string>
     <string name="magisk_manager_detected">检测到Magisk Manager</string>
     <string name="magisk_manager_advice">建议在其设置中选择隐藏Magisk Manager。</string>
     <string name="open_magisk_manager">打开Magisk Manager</string>
