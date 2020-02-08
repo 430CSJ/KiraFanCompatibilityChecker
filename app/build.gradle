@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     useLibrary 'org.apache.http.legacy'
     defaultConfig {
         applicationId "moe.csj430.checkkirafancompatibility"
         minSdkVersion 14
-        targetSdkVersion 28
-        versionCode 20002
+        targetSdkVersion 29
+        versionCode 20004
         versionName "2.0.0"
         ndk {
             abiFilters 'armeabi', 'x86', 'armeabi-v7a', 'x86_64', 'arm64-v8a'
