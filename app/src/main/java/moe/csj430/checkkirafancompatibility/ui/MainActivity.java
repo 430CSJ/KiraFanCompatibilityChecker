@@ -12,9 +12,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
 import android.provider.Settings;
-import androidx.annotation.Keep;
+
 import androidx.appcompat.view.SupportMenuInflater;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,30 +38,16 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.jrummyapps.android.shell.CommandResult;
-import com.jrummyapps.android.shell.Shell;
-import com.unionpay.mobile.device.utils.RootCheckerUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
 
-import de.robv.android.xposed.XposedBridge;
 import moe.csj430.checkkirafancompatibility.R;
-import moe.csj430.checkkirafancompatibility.SystemPropertiesProxy;
 import moe.csj430.checkkirafancompatibility.UpdateTask;
 import moe.csj430.checkkirafancompatibility.util.AlipayDonate;
+import moe.csj430.checkkirafancompatibility.viewmodel.MainViewModel;
 
-import static moe.csj430.checkkirafancompatibility.DeviceInfo.*;
+import static moe.csj430.checkkirafancompatibility.util.DeviceInfo.*;
 
 public class MainActivity extends AppCompatActivity {
     private static String[] CHECK_ITEM = {
@@ -80,32 +69,32 @@ public class MainActivity extends AppCompatActivity {
             "ro.secure"
     };
 
-    private static Long totalMem;
-    private static StringBuilder instructionset;
-    private static int SYSTEM_SDK_INT;
-    private static String SYSTEM_VER;
-    private static Boolean isUSBDebugOn;
-    private static int gsrecode;
-    private ArrayList<Object> device_status = new ArrayList<>();
+    MainViewModel mViewModel;
+
+    private Long totalMem;
+    private String instructionset;
+    private String SYSTEM_VER;
+    private int gs_re_code;
+    private List<Object> device_status = new ArrayList<>();
     private int[] deviceColorArr;
-    private ArrayList<Object> prop_status = new ArrayList<>();
+    private List<Object> sys_status = new ArrayList<>();
     private int[] systemColorArr;
-    private ArrayList<Integer> status = new ArrayList<>();
-    private int[] rootXposedColorArr;
-    private List<ResolveInfo> blacklistapps;
+    private List<Integer> xposed_status = new ArrayList<>();
+    private int[] xposedColorArr;
+    private List<ResolveInfo> blacklist_apps;
     private int[] googleColorArr;
     private static final int ALL_ALLOW = 0777;
 
-    private ImageView statusImg;
-    private ListView listView;
-    private RelativeLayout cardViewArrowRL;
-    private ImageView cardViewArrow;
+    private ImageView xposedStatusImg;
+    private ListView xposedListView;
+    private RelativeLayout xposedCardViewArrowRL;
+    private ImageView xposedCardViewArrow;
     private ImageView deviceStatusImg;
     private ListView deviceListView;
     private RelativeLayout deviceCardViewArrowRL;
     private ImageView deviceCardViewArrow;
     private ImageView systemStatusImg;
-    private ListView androidListView;
+    private ListView systemListView;
     private RelativeLayout systemCardViewArrowRL;
     private ImageView systemCardViewArrow;
     private ImageView appStatusImg;
@@ -117,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout googleCardViewArrowRL;
     private ImageView googleCardViewArrow;
 
-    private static boolean LVUpdated = false;
+    private static boolean xposedLVUpdated = false;
     private static boolean deviceLVUpdated = false;
     private static boolean androidLVUpdated = false;
     private static boolean appDetectLVUpdated = false;
@@ -149,11 +138,11 @@ public class MainActivity extends AppCompatActivity {
     };
 
     View.OnClickListener GS_OCL = view -> {
-        Toast toast = Toast.makeText(MainActivity.this, getResources().getString(R.string.return_value) + ": " + gsrecode, Toast.LENGTH_SHORT);
+        Toast toast = Toast.makeText(MainActivity.this, getResources().getString(R.string.return_value) + ": " + gs_re_code, Toast.LENGTH_SHORT);
         toast.show();
         GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
-        if (googleApiAvailability.isUserResolvableError(gsrecode))
-            googleApiAvailability.getErrorDialog(MainActivity.this, gsrecode, 8996).show();
+        if (googleApiAvailability.isUserResolvableError(gs_re_code))
+            googleApiAvailability.getErrorDialog(MainActivity.this, gs_re_code, 8996).show();
     };
 
     @Override
@@ -167,10 +156,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setTitle(R.string.app_name);
         setContentView(R.layout.activity_main);
-        statusImg = (ImageView) findViewById(R.id.root_xposed_status_img);
-        listView = (ListView) findViewById(R.id.b);
-        cardViewArrowRL = (RelativeLayout) findViewById(R.id.root_xposed_info_arrow_rl);
-        cardViewArrow = (ImageView) findViewById(R.id.root_xposed_info_arrow);
+        xposedStatusImg = (ImageView) findViewById(R.id.root_xposed_status_img);
+        xposedListView = (ListView) findViewById(R.id.b);
+        xposedCardViewArrowRL = (RelativeLayout) findViewById(R.id.root_xposed_info_arrow_rl);
+        xposedCardViewArrow = (ImageView) findViewById(R.id.root_xposed_info_arrow);
         final Button deviceInfoButton = (Button) findViewById(R.id.device_info);
         final Button androidInfoButton = (Button) findViewById(R.id.android_info);
         final Button xposedRootInfoButton = (Button) findViewById(R.id.xposed_and_root_info);
@@ -181,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
         deviceCardViewArrowRL = (RelativeLayout) findViewById(R.id.device_info_arrow_rl);
         deviceCardViewArrow = (ImageView) findViewById(R.id.device_info_arrow);
         systemStatusImg = (ImageView) findViewById(R.id.system_status_img);
-        androidListView = (ListView) findViewById(R.id.android_detail);
+        systemListView = (ListView) findViewById(R.id.android_detail);
         systemCardViewArrowRL = (RelativeLayout) findViewById(R.id.system_info_arrow_rl);
         systemCardViewArrow = (ImageView) findViewById(R.id.system_info_arrow);
         appStatusImg = (ImageView) findViewById(R.id.app_status_img);
@@ -260,65 +249,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
-        totalMem = getTotalMemory(getApplicationContext());
-        deviceColorArr = new int[2];
-        device_status.clear();
-        device_status.add(totalMem);
-        if (totalMem < 1536*1024*1024)
-            deviceColorArr[0] = Color.RED;
-        else if (getTotalMemory(getApplicationContext()) < (long)2048*1024*1024)
-            deviceColorArr[0] = Color.YELLOW;
-        else
-            deviceColorArr[0] = Color.GREEN;
-        instructionset = new StringBuilder("");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            for (int insi = 0; insi < Build.SUPPORTED_ABIS.length; insi++) {
-                if (insi != 0)
-                    instructionset.append(", ");
-                instructionset.append(Build.SUPPORTED_ABIS[insi]);
-            }
-        } else {
-            if (!Build.CPU_ABI.equals("")) {
-                instructionset.append(Build.CPU_ABI);
-                if (!Build.CPU_ABI2.equals(""))
-                    instructionset.append(", ").append(Build.CPU_ABI2);
-            } else {
-                if (!Build.CPU_ABI2.equals(""))
-                    instructionset.append(Build.CPU_ABI2);
-            }
-        }
-        device_status.add(instructionset);
-        if (instructionset.indexOf("arm") != -1 && (instructionset.indexOf("v7") != -1 || instructionset.indexOf("v8") != -1))
-            deviceColorArr[1] = Color.GREEN;
-        else
-            deviceColorArr[1] = Color.YELLOW;
-        int device_img_color = Color.GREEN;
-        for (int color:deviceColorArr) {
-            if (color == Color.RED) {
-                device_img_color = Color.RED;
-                break;
-            } else if (color == Color.YELLOW)
-                device_img_color = Color.YELLOW;
-        }
-        switch (device_img_color) {
-            case Color.GREEN:
-                deviceStatusImg.setImageResource(R.drawable.baseline_check_circle_outline_24);
-                break;
-            case Color.YELLOW:
-                deviceStatusImg.setImageResource(R.drawable.baseline_help_outline_24);
-                break;
-            case Color.RED:
-                deviceStatusImg.setImageResource(R.drawable.baseline_highlight_off_24);
-                break;
-            default:
-                break;
-        }
-        deviceStatusImg.setColorFilter(device_img_color);
-        if (device_img_color != Color.GREEN) {
-            showDeviceLV(deviceColorArr, viewAniCtrl0);
-            deviceCardViewArrow.setRotation(180);
-        } else
-            deviceListView.setVisibility(View.GONE);
+
+        mViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()).create(MainViewModel.class);
+
         deviceCardViewArrowRL.setOnClickListener(view -> {
             if (deviceListView.getVisibility() == View.VISIBLE) {
                 deviceListView.setVisibility(View.GONE);
@@ -327,6 +260,118 @@ public class MainActivity extends AppCompatActivity {
                 deviceListView.setVisibility(View.VISIBLE);
                 showDeviceLV(deviceColorArr, viewAniCtrl0);
                 deviceCardViewArrow.setRotation(180);
+            }
+        });
+
+        final Observer<List<Object>> sysObserver = new Observer<List<Object>>() {
+            @Override
+            public void onChanged(List<Object> sStatus) {
+                sys_status = sStatus;
+                refreshSystemCV();
+            }
+        };
+        mViewModel.getSysStatus().observe(this, sysObserver);
+        Button system_info_refresh = (Button) findViewById(R.id.system_info_refresh);
+        system_info_refresh.setOnClickListener(view -> mViewModel.checkSys());
+        systemCardViewArrowRL.setOnClickListener(view -> {
+            if (systemListView.getVisibility() == View.VISIBLE) {
+                systemListView.setVisibility(View.GONE);
+                systemCardViewArrow.setRotation(0);
+            } else {
+                systemListView.setVisibility(View.VISIBLE);
+                if (!androidLVUpdated) {
+                    showAndroidLV(systemColorArr, viewAniCtrl0);
+                    androidLVUpdated = true;
+                }
+                systemCardViewArrow.setRotation(180);
+            }
+        });
+
+        CHECK_ITEM[0]=getResources().getString(R.string.load_xposed_toolkit);
+        CHECK_ITEM[1]=getResources().getString(R.string.search_feature_dll);
+        CHECK_ITEM[2]=getResources().getString(R.string.code_stack_search_invoker);
+        CHECK_ITEM[3]=getResources().getString(R.string.check_xposed_install_status);
+        CHECK_ITEM[4]=getResources().getString(R.string.judge_system_method_hook);
+        CHECK_ITEM[5]=getResources().getString(R.string.check_virtual_xposed);
+        CHECK_ITEM[6]=getResources().getString(R.string.search_xposed_runtime_lib);
+        CHECK_ITEM[7]=getResources().getString(R.string.kernel_search_xposed_link_lib);
+        CHECK_ITEM[8]=getResources().getString(R.string.judge_envir_variable_chara_word);
+        ROOT_STATUS[0]=getResources().getString(R.string.get_error);
+        ROOT_STATUS[1]=getResources().getString(R.string.item_no_root);
+        ROOT_STATUS[2]=getResources().getString(R.string.item_found_root);
+
+        final Observer<List<Integer>> xposedObserver = new Observer<List<Integer>>() {
+            @Override
+            public void onChanged(List<Integer> xStatus) {
+                xposed_status = xStatus;
+                refreshXposedCV();
+            }
+        };
+        mViewModel.getXposedStatus().observe(this, xposedObserver);
+        Button root_xposed_refresh = (Button) findViewById(R.id.root_xposed_info_refresh);
+        root_xposed_refresh.setOnClickListener(view -> {
+            Toast.makeText(MainActivity.this, R.string.xposed_root_refresh_notice, Toast.LENGTH_SHORT).show();
+            mViewModel.checkXposed();
+        });
+        xposedCardViewArrowRL.setOnClickListener(view -> {
+            if (xposedListView.getVisibility() == View.VISIBLE) {
+                xposedListView.setVisibility(View.GONE);
+                xposedCardViewArrow.setRotation(0);;
+            } else {
+                xposedListView.setVisibility(View.VISIBLE);
+                if (!xposedLVUpdated) {
+                    showXposedLV(xposedColorArr, viewAniCtrl0);
+                    xposedLVUpdated = true;
+                }
+                xposedCardViewArrow.setRotation(180);
+            }
+        });
+
+        final Observer<List<ResolveInfo>> blacklistAppsObserver = new Observer<List<ResolveInfo>>() {
+            @Override
+            public void onChanged(List<ResolveInfo> resolveInfos) {
+                blacklist_apps = resolveInfos;
+                refreshAppListCV();
+            }
+        };
+        mViewModel.getBlacklistApps().observe(this, blacklistAppsObserver);
+        Button app_list_refresh = (Button) findViewById(R.id.app_info_refresh);
+        app_list_refresh.setOnClickListener(view -> mViewModel.checkBlacklistApps());
+        appCardViewArrowRL.setOnClickListener(view -> {
+            if (appDetectListView.getVisibility() == View.VISIBLE) {
+                appDetectListView.setVisibility(View.GONE);
+                appCardViewArrow.setRotation(0);
+            } else {
+                appDetectListView.setVisibility(View.VISIBLE);
+                if (!appDetectLVUpdated) {
+                    showAppListLV(viewAniCtrl0);
+                    appDetectLVUpdated = true;
+                }
+                appCardViewArrow.setRotation(180);
+            }
+        });
+
+        final Observer<Integer> gsReObserver = new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer gsrec) {
+                gs_re_code = gsrec;
+                refreshGoogleCV();
+            }
+        };
+        mViewModel.getGsReCode().observe(this, gsReObserver);
+        Button google_refresh = (Button) findViewById(R.id.google_info_refresh);
+        google_refresh.setOnClickListener(view -> mViewModel.checkGsReCode());
+        googleCardViewArrowRL.setOnClickListener(view -> {
+            if (googleServiceView.getVisibility() == View.VISIBLE) {
+                googleServiceView.setVisibility(View.GONE);
+                googleCardViewArrow.setRotation(0);
+            } else {
+                googleServiceView.setVisibility(View.VISIBLE);
+                if (!googleServiceLVUpdated) {
+                    showGoogleLV(googleColorArr, viewAniCtrl0);
+                    googleServiceLVUpdated = true;
+                }
+                googleCardViewArrow.setRotation(180);
             }
         });
 
@@ -364,7 +409,7 @@ public class MainActivity extends AppCompatActivity {
                             textView2.setText((long)getItem(i) / 1024 / 1024 + " MB");
                         } else if (i == 1) {
                             textView1.setText(R.string.instructionset_supported);
-                            textView2.setText((StringBuilder)getItem(i));
+                            textView2.setText((String)getItem(i));
                         }
                         textView2.setTextColor(colorArray[i]);
                         return layout;
@@ -426,7 +471,7 @@ public class MainActivity extends AppCompatActivity {
                     if (!AlipayDonate.startAlipayClient(MainActivity.this, "tsx057945er7i5k46ajim06")) {
                         Toast.makeText(MainActivity.this, R.string.seem_no_alipay_1, Toast.LENGTH_LONG).show();
                     }
-                }).setNegativeButton(R.string.view_how_water_the_project, (dialogInterface, i) -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/430CSJ/KiraFanCompatibilityChecker")))).setPositiveButton(R.string.know_it, null).show();
+                }).setNegativeButton(R.string.view_how_the_project, (dialogInterface, i) -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/430CSJ/KiraFanCompatibilityChecker")))).setPositiveButton(R.string.know_it, null).show();
                 break;
             default:
                 return super.onOptionsItemSelected(menuItem);
@@ -434,78 +479,56 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private class CheckThread implements Callable<Void> {
-
-        @Override
-        public Void call() throws Exception {
-            status.clear();
-            for (int i = 0; i <= CHECK_ITEM.length; i++) {
-                Method method = MainActivity.class.getDeclaredMethod("check" + (i + 1));
-                method.setAccessible(true);
-                try {
-                    status.add((int) method.invoke(MainActivity.this));
-                } catch (Throwable e) {
-                    status.add(0);
-                }
-            }
-            return null;
-        }
-    }
-
     private int[] checkSystem() {
-        prop_status.clear();
-        int[] colorArray = new int[CHECK_PROP_ITEM.length + 2];
+        if (sys_status.size() <= 0)
+            return null;
+        int[] colorArray = new int[sys_status.size()];
         for (int i = 0; i < colorArray.length; i++)
             colorArray[i] = Color.GREEN;
-        int color_i = 0;
-        SYSTEM_SDK_INT = Build.VERSION.SDK_INT;
-        SYSTEM_VER = getVersion()[1];
+        int SYSTEM_SDK_INT = (Integer)sys_status.get(0);
+        SYSTEM_VER = mViewModel.getSystemVer();
         if (SYSTEM_SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1)
-            colorArray[color_i] = Color.RED;
+            colorArray[0] = Color.RED;
         else if (SYSTEM_SDK_INT < Build.VERSION_CODES.LOLLIPOP)
-            colorArray[color_i] = Color.YELLOW;
-        color_i++;
-        int prop_i = 0;
+            colorArray[0] = Color.YELLOW;
+        int syss_i = 1;
         for (String check_prop:CHECK_PROP_ITEM) {
-            if (prop_i < 2)
-                prop_status.add(SystemPropertiesProxy.getString(getApplicationContext(), check_prop));
-            else
-                prop_status.add(SystemPropertiesProxy.getInt(getApplicationContext(), check_prop, 0));
             switch (check_prop) {
                 case "persist.sys.usb.config":
-                    if (((String)prop_status.get(prop_i)).equals("adb"))
-                        colorArray[color_i] = Color.RED;
+                    if ("adb".equals(sys_status.get(syss_i)))
+                        colorArray[syss_i] = Color.RED;
                     break;
                 case "ro.build.type":
-                    if (((String)prop_status.get(prop_i)).equals("eng"))
-                        colorArray[color_i] = Color.RED;
+                    if ("eng".equals(sys_status.get(syss_i)))
+                        colorArray[syss_i] = Color.RED;
                     break;
                 case "ro.debuggable":
-                    if ((Integer)prop_status.get(prop_i) != 0)
-                        colorArray[color_i] = Color.RED;
+                    if ((Integer)sys_status.get(syss_i) != 0)
+                        colorArray[syss_i] = Color.RED;
                     break;
                 case "ro.secure":
-                    if ((Integer)prop_status.get(prop_i) == 0)
-                        colorArray[color_i] = Color.RED;
+                    if ((Integer)sys_status.get(syss_i) == 0)
+                        colorArray[syss_i] = Color.RED;
                     break;
                 default:
                     break;
             }
-            color_i++;
-            prop_i++;
+            syss_i++;
         }
-        isUSBDebugOn = isUsbDebugOn(getApplicationContext());
-        if (isUSBDebugOn)
-            colorArray[color_i] = Color.RED;
+        if (syss_i < sys_status.size()) {
+            Boolean isUSBDebugOn = (Boolean)sys_status.get(syss_i);
+            if (isUSBDebugOn)
+                colorArray[syss_i] = Color.RED;
+        }
         return colorArray;
     }
 
     private void showAndroidLV(int[] colorArray, LayoutAnimationController viewAniCtrl) {
-        if (androidListView != null) {
-            androidListView.setVisibility(View.VISIBLE);
+        if (systemListView != null) {
+            systemListView.setVisibility(View.VISIBLE);
             if (viewAniCtrl != null)
-                androidListView.setLayoutAnimation(viewAniCtrl);
-            androidListView.setAdapter(new BaseAdapter() {
+                systemListView.setLayoutAnimation(viewAniCtrl);
+            systemListView.setAdapter(new BaseAdapter() {
                 @Override
                 public int getCount() {
                     return colorArray.length;
@@ -513,13 +536,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public Object getItem(int i) {
-                    if (i == 0)
-                        return SYSTEM_VER;
-                    if (i == getCount() - 1)
-                        return isUSBDebugOn;
-                    if (i <= CHECK_PROP_ITEM.length && i <= prop_status.size())
-                        return prop_status.get(i - 1);
-                    return null;
+                    return sys_status.get(i);
                 }
 
                 @Override
@@ -530,32 +547,33 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public View getView(int i, View view, ViewGroup viewGroup) {
                     RelativeLayout layout;
-                    if (i == getCount() - 1 && isUSBDebugOn)
+                    if (i == getCount() - 1 && "adb".equals(getItem(1)) && (Boolean)getItem(i)) {
                         layout = (RelativeLayout) LayoutInflater.from(MainActivity.this).inflate(R.layout.items, null);
-                    else
+                        TextView textView1 = (TextView) layout.findViewById(R.id.check_item);
+                        TextView textView2 = (TextView) layout.findViewById(R.id.check_result);
+                        textView1.setText(R.string.usb_debug);
+                        textView2.setTextColor(colorArray[i]);
+                        textView2.setText(R.string.on);
+                        layout.setOnClickListener(DS_OCL);
+                        return layout;
+                    } else
                         layout = (RelativeLayout) LayoutInflater.from(MainActivity.this).inflate(R.layout.items_not_selectable, null);
                     TextView textView1 = (TextView) layout.findViewById(R.id.check_item);
                     TextView textView2 = (TextView) layout.findViewById(R.id.check_result);
                     textView2.setTextColor(colorArray[i]);
                     if (i == 0) {
                         textView1.setText(R.string.version);
-                        textView2.setText(SYSTEM_VER);
-                    } else if (i == getCount() - 1) {
-                        textView1.setText(R.string.usb_debug);
-                        if (isUSBDebugOn) {
-                            textView2.setText(R.string.on);
-                            layout.setOnClickListener(DS_OCL);
-                        } else
-                            textView2.setText(R.string.off);
+                        textView2.setText(mViewModel.getSystemVer());
+                        return layout;
                     } else {
                         textView1.setText(CHECK_PROP_ITEM[i - 1]);
-                        String prop_val_str;
-                        if (getItem(i) instanceof String)
-                            prop_val_str = (String)getItem(i);
-                        else
-                            prop_val_str = String.valueOf(getItem(i));
-                        textView2.setText(prop_val_str);
                     }
+                    String prop_val_str;
+                    if (getItem(i) instanceof String)
+                        prop_val_str = (String)getItem(i);
+                    else
+                        prop_val_str = String.valueOf(getItem(i));
+                    textView2.setText(prop_val_str);
                     return layout;
                 }
             });
@@ -593,37 +611,26 @@ public class MainActivity extends AppCompatActivity {
             androidLVUpdated = true;
             systemCardViewArrow.setRotation(180);
         } else {
-            androidListView.setVisibility(View.GONE);
+            systemListView.setVisibility(View.GONE);
             systemCardViewArrow.setRotation(0);
         }
     }
 
     private int[] checkRootXposed() {
-        try {
-            FutureTask futureTask = new FutureTask<>(new UnpackThread());
-            new Thread(futureTask).start();
-            futureTask.get();
-
-            futureTask = new FutureTask<>(new CheckThread());
-            new Thread(futureTask).start();
-            futureTask.get();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         int[] colorArray = new int[CHECK_ITEM.length + 1];
         for (int position = 0; position < CHECK_ITEM.length + 1; position++) {
-            int itemStatus = status.get(position);
+            int itemStatus = xposed_status.get(position);
             colorArray[position] = itemStatus == 0 ? Color.GREEN : Color.RED;
         }
         return colorArray;
     }
 
-    private void showLV(int[] colorArray, LayoutAnimationController viewAniCtrl) {
-        if (listView != null) {
-            listView.setVisibility(View.VISIBLE);
+    private void showXposedLV(int[] colorArray, LayoutAnimationController viewAniCtrl) {
+        if (xposedListView != null) {
+            xposedListView.setVisibility(View.VISIBLE);
             if (viewAniCtrl != null)
-                listView.setLayoutAnimation(viewAniCtrl);
-            listView.setAdapter(new BaseAdapter() {
+                xposedListView.setLayoutAnimation(viewAniCtrl);
+            xposedListView.setAdapter(new BaseAdapter() {
                 @Override
                 public int getCount() {
                     return CHECK_ITEM.length + 1;
@@ -631,7 +638,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public Object getItem(int i) {
-                    return status.get(i);
+                    return xposed_status.get(i);
                 }
 
                 @Override
@@ -659,11 +666,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void refreshCV() {
-        LVUpdated = false;
-        rootXposedColorArr = checkRootXposed();
+    private void refreshXposedCV() {
+        xposedLVUpdated = false;
+        xposedColorArr = checkRootXposed();
         int status_img_color = Color.GREEN;
-        for (int colorint:rootXposedColorArr) {
+        for (int colorint: xposedColorArr) {
             if (colorint == Color.RED) {
                 status_img_color = Color.RED;
                 break;
@@ -673,32 +680,31 @@ public class MainActivity extends AppCompatActivity {
         }
         switch (status_img_color) {
             case Color.GREEN:
-                statusImg.setImageResource(R.drawable.baseline_check_circle_outline_24);
+                xposedStatusImg.setImageResource(R.drawable.baseline_check_circle_outline_24);
                 break;
             case Color.YELLOW:
-                statusImg.setImageResource(R.drawable.baseline_help_outline_24);
+                xposedStatusImg.setImageResource(R.drawable.baseline_help_outline_24);
                 break;
             case Color.RED:
-                statusImg.setImageResource(R.drawable.baseline_highlight_off_24);
+                xposedStatusImg.setImageResource(R.drawable.baseline_highlight_off_24);
                 break;
             default:
                 break;
         }
-        statusImg.setColorFilter(status_img_color);
+        xposedStatusImg.setColorFilter(status_img_color);
         if (status_img_color != Color.GREEN) {
-            showLV(rootXposedColorArr, viewAniCtrl0);
-            LVUpdated = true;
-            cardViewArrow.setRotation(180);
+            showXposedLV(xposedColorArr, viewAniCtrl0);
+            xposedLVUpdated = true;
+            xposedCardViewArrow.setRotation(180);
         } else {
-            listView.setVisibility(View.GONE);
-            cardViewArrow.setRotation(0);
+            xposedListView.setVisibility(View.GONE);
+            xposedCardViewArrow.setRotation(0);
         }
     }
 
     private int[] checkGoogle() {
-        gsrecode=isGoogleServiceAvailable(MainActivity.this);
         int[] colorArray = new int[1];
-        switch (gsrecode) {
+        switch (gs_re_code) {
             case ConnectionResult.SUCCESS:
                 colorArray[0] = Color.GREEN;
                 break;
@@ -728,7 +734,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public Object getItem(int i) {
-                    return gsrecode;
+                    return gs_re_code;
                 }
 
                 @Override
@@ -743,7 +749,7 @@ public class MainActivity extends AppCompatActivity {
                     TextView textView2 = (TextView) layout.findViewById(R.id.check_result);
                     if (i == 0) {
                         textView1.setText(R.string.google_service);
-                        switch (gsrecode) {
+                        switch (gs_re_code) {
                             case ConnectionResult.SUCCESS:
                                 textView2.setText(R.string.available);
                                 break;
@@ -802,10 +808,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void checkAppList() {
-        blacklistapps = getBlackListApps(getApplicationContext());
-    }
-
     private void showAppListLV(LayoutAnimationController viewAniCtrl) {
         if (appDetectListView != null) {
             appDetectListView.setVisibility(View.VISIBLE);
@@ -814,12 +816,12 @@ public class MainActivity extends AppCompatActivity {
             appDetectListView.setAdapter(new BaseAdapter() {
                 @Override
                 public int getCount() {
-                    return blacklistapps.size() > 0 ? blacklistapps.size() : 1;
+                    return blacklist_apps.size() > 0 ? blacklist_apps.size() : 1;
                 }
 
                 @Override
                 public Object getItem(int i) {
-                    return blacklistapps.size() > 0 ? blacklistapps.get(i) : null;
+                    return blacklist_apps.size() > 0 ? blacklist_apps.get(i) : null;
                 }
 
                 @Override
@@ -830,13 +832,13 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public View getView(int i, View view, ViewGroup viewGroup) {
                     RelativeLayout layout;
-                    if (blacklistapps.size() > 0) {
+                    if (blacklist_apps.size() > 0) {
                         layout = (RelativeLayout) LayoutInflater.from(MainActivity.this).inflate(R.layout.items, null);
                         TextView textView1 = (TextView) layout.findViewById(R.id.check_item);
                         TextView textView2 = (TextView) layout.findViewById(R.id.check_result);
-                        textView1.setText(blacklistapps.get(i).activityInfo.loadLabel(getPackageManager()));
+                        textView1.setText(blacklist_apps.get(i).activityInfo.loadLabel(getPackageManager()));
                         textView1.setTextColor(Color.RED);
-                        String target_package_name = blacklistapps.get(i).activityInfo.packageName;
+                        String target_package_name = blacklist_apps.get(i).activityInfo.packageName;
                         textView2.setText(target_package_name);
                         textView2.setTextColor(Color.RED);
                         layout.setOnClickListener(view1 -> {
@@ -866,9 +868,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void refreshAppListCV() {
         appDetectLVUpdated = false;
-        checkAppList();
         int status_img_color = Color.GREEN;
-        if (blacklistapps.size() > 0)
+        if (blacklist_apps.size() > 0)
             status_img_color = Color.RED;
         switch (status_img_color) {
             case Color.GREEN:
@@ -892,275 +893,59 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshChange() {
-        CHECK_ITEM[0]=getResources().getString(R.string.load_xposed_toolkit);
-        CHECK_ITEM[1]=getResources().getString(R.string.search_feature_dll);
-        CHECK_ITEM[2]=getResources().getString(R.string.code_stack_search_invoker);
-        CHECK_ITEM[3]=getResources().getString(R.string.check_xposed_install_status);
-        CHECK_ITEM[4]=getResources().getString(R.string.judge_system_method_hook);
-        CHECK_ITEM[5]=getResources().getString(R.string.check_virtual_xposed);
-        CHECK_ITEM[6]=getResources().getString(R.string.search_xposed_runtime_lib);
-        CHECK_ITEM[7]=getResources().getString(R.string.kernel_search_xposed_link_lib);
-        CHECK_ITEM[8]=getResources().getString(R.string.judge_envir_variable_chara_word);
-        ROOT_STATUS[0]=getResources().getString(R.string.get_error);
-        ROOT_STATUS[1]=getResources().getString(R.string.item_no_root);
-        ROOT_STATUS[2]=getResources().getString(R.string.item_found_root);
 
-        refreshSystemCV();
-        Button system_info_refresh = (Button) findViewById(R.id.system_info_refresh);
-        system_info_refresh.setOnClickListener(view -> refreshSystemCV());
-        systemCardViewArrowRL.setOnClickListener(view -> {
-            if (androidListView.getVisibility() == View.VISIBLE) {
-                androidListView.setVisibility(View.GONE);
-                systemCardViewArrow.setRotation(0);
-            } else {
-                androidListView.setVisibility(View.VISIBLE);
-                if (!androidLVUpdated) {
-                    showAndroidLV(systemColorArr, viewAniCtrl0);
-                    androidLVUpdated = true;
-                }
-                systemCardViewArrow.setRotation(180);
-            }
-        });
-
-        refreshCV();
-        Button root_xposed_refresh = (Button) findViewById(R.id.root_xposed_info_refresh);
-        root_xposed_refresh.setOnClickListener(view -> {
-            Toast.makeText(MainActivity.this, R.string.xposed_root_refresh_notice, Toast.LENGTH_SHORT).show();
-            refreshCV();
-        });
-        cardViewArrowRL.setOnClickListener(view -> {
-            if (listView.getVisibility() == View.VISIBLE) {
-                listView.setVisibility(View.GONE);
-                cardViewArrow.setRotation(0);;
-            } else {
-                listView.setVisibility(View.VISIBLE);
-                if (!LVUpdated) {
-                    showLV(rootXposedColorArr, viewAniCtrl0);
-                    LVUpdated = true;
-                }
-                cardViewArrow.setRotation(180);
-            }
-        });
-
-        refreshGoogleCV();
-        Button google_refresh = (Button) findViewById(R.id.google_info_refresh);
-        google_refresh.setOnClickListener(view -> refreshGoogleCV());
-        googleCardViewArrowRL.setOnClickListener(view -> {
-            if (googleServiceView.getVisibility() == View.VISIBLE) {
-                googleServiceView.setVisibility(View.GONE);
-                googleCardViewArrow.setRotation(0);
-            } else {
-                googleServiceView.setVisibility(View.VISIBLE);
-                if (!googleServiceLVUpdated) {
-                    showGoogleLV(googleColorArr, viewAniCtrl0);
-                    googleServiceLVUpdated = true;
-                }
-                googleCardViewArrow.setRotation(180);
-            }
-        });
-
-        refreshAppListCV();
-        Button app_list_refresh = (Button) findViewById(R.id.app_info_refresh);
-        app_list_refresh.setOnClickListener(view -> refreshAppListCV());
-        appCardViewArrowRL.setOnClickListener(view -> {
-            if (appDetectListView.getVisibility() == View.VISIBLE) {
-                appDetectListView.setVisibility(View.GONE);
-                appCardViewArrow.setRotation(0);
-            } else {
-                appDetectListView.setVisibility(View.VISIBLE);
-                if (!appDetectLVUpdated) {
-                    showAppListLV(viewAniCtrl0);
-                    appDetectLVUpdated = true;
-                }
-                appCardViewArrow.setRotation(180);
-            }
-        });
-    }
-
-    @Keep
-    private int check1() {
-
-        return testClassLoader() || testUseClassDirectly() ? 1 : 0;
-    }
-
-    private boolean testClassLoader() {
-        try {
-            ClassLoader.getSystemClassLoader()
-                    .loadClass("de.robv.android.xposed.XposedHelpers");
-
-            return true;
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        if (mViewModel.getHasInit()) {
+            mViewModel.checkXposed();
+            mViewModel.checkBlacklistApps();
+            mViewModel.checkSys();
+            mViewModel.checkGsReCode();
+        } else {
+            mViewModel.initVM(getApplicationContext());
         }
-        return false;
-    }
 
-    private boolean testUseClassDirectly() {
-        try {
-            XposedBridge.log("fuck wechat");
-            return true;
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    @Keep
-    private int check2() {
-        return checkContains("XposedBridge") ? 1 : 0;
-    }
-
-    @Keep
-    private int check3() {
-        try {
-            throw new Exception();
-        } catch (Exception e) {
-            StackTraceElement[] arrayOfStackTraceElement = e.getStackTrace();
-            for (StackTraceElement s : arrayOfStackTraceElement) {
-                if ("de.robv.android.xposed.XposedBridge".equals(s.getClassName())) {
-                    return 1;
-                }
-            }
-            return 0;
-        }
-    }
-
-    @Keep
-    private int check4() {
-        try {
-            List<PackageInfo> list = getPackageManager().getInstalledPackages(0);
-            for (PackageInfo info : list) {
-                if ("de.robv.android.xposed.installer".equals(info.packageName)) {
-                    return 1;
-                }
-                if ("io.va.exposed".equals(info.packageName)) {
-                    return 1;
-                }
-            }
-        } catch (Throwable ignored) {
-
-        }
-        return 0;
-    }
-
-    @Keep
-    private int check5() {
-        try {
-            Method method = Throwable.class.getDeclaredMethod("getStackTrace");
-            return Modifier.isNative(method.getModifiers()) ? 1 : 0;
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    @Keep
-    private int check6() {
-        return System.getProperty("vxp") != null ? 1 : 0;
-    }
-
-
-    /**
-     * @param paramString check string
-     * @return whether check string is found in maps
-     */
-    public static boolean checkContains(String paramString) {
-        try {
-            HashSet<String> localObject = new HashSet<>();
-            // 读取maps文件信息
-            BufferedReader localBufferedReader =
-                    new BufferedReader(new FileReader("/proc/" + Process.myPid() + "/maps"));
-            while (true) {
-                String str = localBufferedReader.readLine();
-                if (str == null) {
+        if (device_status.size() == 0) {
+            totalMem = mViewModel.getTotalMen();
+            deviceColorArr = new int[2];
+            device_status.add(totalMem);
+            if (totalMem < 1536 * 1024 * 1024)
+                deviceColorArr[0] = Color.RED;
+            else if (getTotalMemory(getApplicationContext()) < (long) 2048 * 1024 * 1024)
+                deviceColorArr[0] = Color.YELLOW;
+            else
+                deviceColorArr[0] = Color.GREEN;
+            instructionset = mViewModel.getInstructionSet();
+            device_status.add(instructionset);
+            if (instructionset.contains("arm") && (instructionset.contains("v7") || instructionset.contains("v8")))
+                deviceColorArr[1] = Color.GREEN;
+            else
+                deviceColorArr[1] = Color.YELLOW;
+            int device_img_color = Color.GREEN;
+            for (int color : deviceColorArr) {
+                if (color == Color.RED) {
+                    device_img_color = Color.RED;
                     break;
-                }
-                localObject.add(str.substring(str.lastIndexOf(" ") + 1));
+                } else if (color == Color.YELLOW)
+                    device_img_color = Color.YELLOW;
             }
-            //应用程序的链接库不可能是空，除非是高于7.0。。。
-            if (localObject.isEmpty() && Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
-                return true;
+            switch (device_img_color) {
+                case Color.GREEN:
+                    deviceStatusImg.setImageResource(R.drawable.baseline_check_circle_outline_24);
+                    break;
+                case Color.YELLOW:
+                    deviceStatusImg.setImageResource(R.drawable.baseline_help_outline_24);
+                    break;
+                case Color.RED:
+                    deviceStatusImg.setImageResource(R.drawable.baseline_highlight_off_24);
+                    break;
+                default:
+                    break;
             }
-            localBufferedReader.close();
-            for (String aLocalObject : localObject) {
-                if (aLocalObject.contains(paramString)) {
-                    return true;
-                }
-            }
-        } catch (Throwable ignored) {
-        }
-        return false;
-    }
-
-    @Keep
-    private int check7() {
-        CommandResult commandResult = Shell.run("ls /system/lib");
-        return commandResult.isSuccessful() ? commandResult.getStdout().contains("xposed") ? 1 : 0 : 0;
-    }
-
-    @Keep
-    private int check8() {
-        CommandResult commandResult = Shell.run(getFilesDir().getAbsolutePath() + "/checkman " + Process.myPid());
-        return commandResult.isSuccessful() ? 1 : 0;
-    }
-
-    @Keep
-    private int check9() {
-        return System.getenv("CLASSPATH").contains("XposedBridge") ? 1 : 0;
-    }
-
-    @Keep
-    private int check10() {
-        try {
-            return RootCheckerUtils.detect(this) ? 1 : 0;
-        } catch (Throwable t) {
-            t.printStackTrace();
-            return -1;
-        }
-    }
-
-    private class UnpackThread implements Callable<Void> {
-
-        @Override
-        public Void call() throws Exception {
-            if (!new File(getFilesDir().getAbsolutePath() + "/checkman").exists()) {
-                InputStream inputStream = getAssets().open("checkman");
-                OutputStream outputStream = openFileOutput("checkman", MODE_PRIVATE);
-                int bit;
-                while ((bit = inputStream.read()) != -1) {
-                    outputStream.write(bit);
-                }
-            }
-            setFilePermissions(getFilesDir(), ALL_ALLOW, -1, -1);
-            setFilePermissions(getFilesDir().getAbsolutePath() + "/checkman", ALL_ALLOW, -1, -1);
-            return null;
-        }
-
-        /**
-         * 修改文件权限
-         * setFilePermissions(file, 0777, -1, -1);
-         */
-        boolean setFilePermissions(File file, int chmod, int uid, int gid) {
-            if (file != null) {
-                Class<?> fileUtils;
-                try {
-                    fileUtils = Class.forName("android.os.FileUtils");
-                    Method setPermissions = fileUtils.getMethod("setPermissions", File.class, int.class, int.class, int.class);
-                    int result = (Integer) setPermissions.invoke(null, file, chmod, uid, gid);
-
-                    return result == 0;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                return false;
-            } else {
-                return false;
-            }
-        }
-
-        boolean setFilePermissions(String file, int chmod, int uid, int gid) {
-            return setFilePermissions(new File(file), chmod, uid, gid);
+            deviceStatusImg.setColorFilter(device_img_color);
+            if (device_img_color != Color.GREEN) {
+                showDeviceLV(deviceColorArr, viewAniCtrl0);
+                deviceCardViewArrow.setRotation(180);
+            } else
+                deviceListView.setVisibility(View.GONE);
         }
     }
 }

@@ -1,4 +1,4 @@
-package moe.csj430.checkkirafancompatibility;
+package moe.csj430.checkkirafancompatibility.util;
 
 /**
  * Created by Administrator on 2017/10/6.

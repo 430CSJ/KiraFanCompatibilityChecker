@@ -27,3 +27,12 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+ext {
+    appCompatVersion = "1.1.0"
+    materialVersion = "1.1.0"
+    cardViewVersion = "1.0.0"
+    lifecycleVersion = "2.2.0"
+    tencentBuglyVersion = "latest.release"
+    gmsPlayServicesLocationVersion = "17.0.0"
+}

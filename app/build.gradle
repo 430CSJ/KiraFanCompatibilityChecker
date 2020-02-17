@@ -7,8 +7,8 @@ android {
         applicationId "moe.csj430.checkkirafancompatibility"
         minSdkVersion 14
         targetSdkVersion 29
-        versionCode 20004
-        versionName "2.0.0"
+        versionCode 20202
+        versionName "2.2.0"
         ndk {
             abiFilters 'armeabi', 'x86', 'armeabi-v7a', 'x86_64', 'arm64-v8a'
         }
@@ -34,15 +34,17 @@ android {
 
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'com.google.android.material:material:1.1.0'
+    implementation "androidx.appcompat:appcompat:$appCompatVersion"
+    implementation "com.google.android.material:material:$materialVersion"
     compileOnly 'de.robv.android.xposed:api:53'
-    implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'com.tencent.bugly:crashreport:latest.release'
-    implementation 'com.tencent.bugly:nativecrashreport:latest.release'
+    implementation "androidx.cardview:cardview:$cardViewVersion"
+    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion"
+    implementation "com.tencent.bugly:crashreport:$tencentBuglyVersion"
+    implementation "com.tencent.bugly:nativecrashreport:$tencentBuglyVersion"
     implementation('com.jrummyapps:android-shell:1.0.1@aar') {
         transitive = true
         exclude group: 'com.android.support', module: 'support-annotations'
     }
-    implementation 'com.google.android.gms:play-services-location:17.0.0'
+    implementation "com.google.android.gms:play-services-location:$gmsPlayServicesLocationVersion"
 }

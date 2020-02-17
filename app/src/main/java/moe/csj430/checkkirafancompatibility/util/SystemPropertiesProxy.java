@@ -1,4 +1,4 @@
-package moe.csj430.checkkirafancompatibility;
+package moe.csj430.checkkirafancompatibility.util;
 
 import android.content.Context;
 import android.util.Log;
