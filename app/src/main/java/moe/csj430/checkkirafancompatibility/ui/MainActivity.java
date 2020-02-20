@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.os.Process;
 import android.provider.Settings;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.view.SupportMenuInflater;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
@@ -47,6 +49,10 @@ import moe.csj430.checkkirafancompatibility.UpdateTask;
 import moe.csj430.checkkirafancompatibility.util.AlipayDonate;
 import moe.csj430.checkkirafancompatibility.viewmodel.MainViewModel;
 
+import static moe.csj430.checkkirafancompatibility.App.getCurrAppTheme;
+import static moe.csj430.checkkirafancompatibility.App.getDarkModeStatus;
+import static moe.csj430.checkkirafancompatibility.App.getSysUiMode;
+import static moe.csj430.checkkirafancompatibility.App.setCurrAppTheme;
 import static moe.csj430.checkkirafancompatibility.util.DeviceInfo.*;
 
 public class MainActivity extends AppCompatActivity {
@@ -112,6 +118,9 @@ public class MainActivity extends AppCompatActivity {
     private static boolean appDetectLVUpdated = false;
     private static boolean googleServiceLVUpdated = false;
 
+    private static int currUiMode;
+    private int cti;
+
     private LayoutAnimationController viewAniCtrl0;
 
     View.OnClickListener DS_OCL = view -> {
@@ -152,9 +161,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (getCurrAppTheme() != 0x10 && getCurrAppTheme() != 0x01 && newConfig.uiMode != currUiMode)
+            recreate();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle(R.string.app_name);
+        currUiMode = getSysUiMode();
         setContentView(R.layout.activity_main);
         xposedStatusImg = (ImageView) findViewById(R.id.root_xposed_status_img);
         xposedListView = (ListView) findViewById(R.id.b);
@@ -435,6 +452,41 @@ public class MainActivity extends AppCompatActivity {
                 ((TextView)explanation_dialog_view.findViewById(R.id.yellow_words)).setTextColor(Color.YELLOW);
                 ((TextView)explanation_dialog_view.findViewById(R.id.red_words)).setTextColor(Color.RED);
                 new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.menu_explanation).setView(explanation_dialog_view).setPositiveButton(R.string.know_it, null).show();
+                break;
+            case R.id.id_menu_set_theme:
+                int ti;
+                switch (getCurrAppTheme()) {
+                    case 0x01:
+                        ti = 1;
+                        break;
+                    case 0x10:
+                        ti = 2;
+                        break;
+                    default:
+                        ti = 0;
+                        break;
+                }
+                cti = ti;
+                final String[] themes = {getString(R.string.default_theme), getString(R.string.light), getString(R.string.dark)};
+                new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.menu_settheme)
+                        .setSingleChoiceItems(themes, ti, (dialog, which) -> cti = which)
+                        .setPositiveButton(R.string.dialog_ok, (dialog, which) -> {
+                            if (cti != ti) {
+                                if (cti == 0) {
+                                    setCurrAppTheme(0x00);
+                                    if ((ti == 1 && getDarkModeStatus(getSysUiMode())) || (ti == 2 && !getDarkModeStatus(getSysUiMode())))
+                                        recreate();
+                                } else if (cti == 1) {
+                                    setCurrAppTheme(0x01);
+                                    if (getDarkModeStatus(getSysUiMode()))
+                                        recreate();
+                                } else if (cti == 2) {
+                                    setCurrAppTheme(0x10);
+                                    if (!getDarkModeStatus(getSysUiMode()))
+                                        recreate();
+                                }
+                            }
+                        }).create().show();
                 break;
             case R.id.id_menu_check_update:
                 new UpdateTask(MainActivity.this, true, true).update();
@@ -900,7 +952,7 @@ public class MainActivity extends AppCompatActivity {
             mViewModel.checkSys();
             mViewModel.checkGsReCode();
         } else {
-            mViewModel.initVM(getApplicationContext());
+            mViewModel.initVM();
         }
 
         if (device_status.size() == 0) {

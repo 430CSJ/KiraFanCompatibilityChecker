@@ -30,6 +30,7 @@ import java.util.concurrent.FutureTask;
 import de.robv.android.xposed.XposedBridge;
 import moe.csj430.checkkirafancompatibility.util.SystemPropertiesProxy;
 
+import static moe.csj430.checkkirafancompatibility.App.getAppContext;
 import static moe.csj430.checkkirafancompatibility.util.DeviceInfo.getBlackListApps;
 import static moe.csj430.checkkirafancompatibility.util.DeviceInfo.getTotalMemory;
 import static moe.csj430.checkkirafancompatibility.util.DeviceInfo.getVersion;
@@ -70,7 +71,7 @@ public class MainViewModel extends ViewModel {
             "ro.secure"
     };
 
-    private Context app_context;
+    private Context app_context = getAppContext();
     private boolean has_init = false;
 
     public String getSystemVer() {
@@ -105,10 +106,9 @@ public class MainViewModel extends ViewModel {
         return has_init;
     }
 
-    public void initVM(Context appContext) {
+    public void initVM() {
         if (has_init)
             return;
-        app_context = appContext;
         checkXposed();
         checkBlacklistApps();
         system_sdk_int = Build.VERSION.SDK_INT;

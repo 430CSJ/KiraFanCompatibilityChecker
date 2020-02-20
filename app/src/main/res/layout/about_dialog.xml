@@ -20,7 +20,7 @@
             android:text="@string/view_update_log"
             android:clickable="true"
             android:focusable="true"
-            android:textColor="#0099cc"
+            android:textColor="?attr/colorAccent"
             android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />

@@ -12,6 +12,12 @@
     <string name="red_words_expl">表示该因素会影响KiraFan正常运行</string>
     <string name="menu_about">关于</string>
     <string name="menu_checkupdate">检查更新</string>
+    <string name="menu_settheme">设置主题</string>
+
+    <string name="light">明亮</string>
+    <string name="dark">黑暗</string>
+    <string name="default_theme">默认（跟随系统设置）</string>
+    <string name="dialog_ok">确定</string>
 
     <string name="know_it">知道了</string>
     <string name="i_know_it">我知道了</string>

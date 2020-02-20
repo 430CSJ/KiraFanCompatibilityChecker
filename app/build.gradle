@@ -7,8 +7,8 @@ android {
         applicationId "moe.csj430.checkkirafancompatibility"
         minSdkVersion 14
         targetSdkVersion 29
-        versionCode 20202
-        versionName "2.2.0"
+        versionCode 20600
+        versionName "2.6.0"
         ndk {
             abiFilters 'armeabi', 'x86', 'armeabi-v7a', 'x86_64', 'arm64-v8a'
         }

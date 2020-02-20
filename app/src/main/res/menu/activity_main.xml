@@ -5,6 +5,9 @@
         android:icon="@drawable/baseline_info_24"
         android:title="@string/menu_explanation"
         kfcc:showAsAction="ifRoom|withText" />
+    <item android:id="@+id/id_menu_set_theme"
+        android:title="@string/menu_settheme"
+        kfcc:showAsAction="never" />
     <item
         android:id="@+id/id_menu_check_update"
         android:icon="@drawable/baseline_update_24"
