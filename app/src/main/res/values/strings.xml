@@ -15,7 +15,7 @@
     <string name="menu_settheme">设置主题</string>
 
     <string name="light">明亮</string>
-    <string name="dark">黑暗</string>
+    <string name="dark">深色</string>
     <string name="default_theme">默认（跟随系统设置）</string>
     <string name="dialog_ok">确定</string>
 
