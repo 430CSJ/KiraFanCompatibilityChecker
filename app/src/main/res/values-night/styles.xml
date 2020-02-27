@@ -1,10 +1,11 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.Bridge">
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar.Bridge">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/primary_color_night</item>
         <item name="colorPrimaryDark">@color/primary_color_dark_night</item>
+        <item name="popupMenuStyle">@style/ThemeOverlay.AppCompat.Dark</item>
     </style>
 
 </resources>

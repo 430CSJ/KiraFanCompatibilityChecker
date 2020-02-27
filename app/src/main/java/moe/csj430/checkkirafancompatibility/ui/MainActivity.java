@@ -1,7 +1,8 @@
 package moe.csj430.checkkirafancompatibility.ui;
 
+import android.app.Activity;
 import android.content.ComponentName;
-import android.content.DialogInterface;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -17,6 +18,8 @@ import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.appcompat.view.SupportMenuInflater;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.widget.ContentLoadingProgressBar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -31,6 +34,7 @@ import android.view.animation.LayoutAnimationController;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -41,6 +45,8 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import net.cachapa.expandablelayout.ExpandableLayout;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,111 +54,1016 @@ import moe.csj430.checkkirafancompatibility.R;
 import moe.csj430.checkkirafancompatibility.UpdateTask;
 import moe.csj430.checkkirafancompatibility.util.AlipayDonate;
 import moe.csj430.checkkirafancompatibility.viewmodel.MainViewModel;
+import moe.csj430.checkkirafancompatibility.widget.ResultCardView;
+import moe.csj430.checkkirafancompatibility.widget.WrapContentListView;
 
+import static moe.csj430.checkkirafancompatibility.App.getAppContext;
 import static moe.csj430.checkkirafancompatibility.App.getCurrAppTheme;
 import static moe.csj430.checkkirafancompatibility.App.getDarkModeStatus;
 import static moe.csj430.checkkirafancompatibility.App.getSysUiMode;
 import static moe.csj430.checkkirafancompatibility.App.setCurrAppTheme;
-import static moe.csj430.checkkirafancompatibility.util.DeviceInfo.*;
 
 public class MainActivity extends AppCompatActivity {
-    private static String[] CHECK_ITEM = {
-            "载入Xposed工具类",
-            "寻找特征动态链接库",
-            "代码堆栈寻找调起者",
-            "检测Xposed安装情况",
-            "判定系统方法调用钩子",
-            "检测虚拟Xposed环境",
-            "寻找Xposed运行库文件",
-            "内核查找Xposed链接库",
-            "环境变量特征字判断",
-    };
-    private static String[] ROOT_STATUS = {"出错", "未发现Root", "发现Root"};
-    private static final String[] CHECK_PROP_ITEM = {
-            "persist.sys.usb.config",
-            "ro.build.type",
-            "ro.debuggable",
-            "ro.secure"
-    };
 
     MainViewModel mViewModel;
 
-    private Long totalMem;
-    private String instructionset;
-    private String SYSTEM_VER;
-    private int gs_re_code;
-    private List<Object> device_status = new ArrayList<>();
-    private int[] deviceColorArr;
-    private List<Object> sys_status = new ArrayList<>();
-    private int[] systemColorArr;
-    private List<Integer> xposed_status = new ArrayList<>();
-    private int[] xposedColorArr;
-    private List<ResolveInfo> blacklist_apps;
-    private int[] googleColorArr;
-    private static final int ALL_ALLOW = 0777;
+    ResultCardView deviceResultCardView;
 
-    private ImageView xposedStatusImg;
-    private ListView xposedListView;
-    private RelativeLayout xposedCardViewArrowRL;
-    private ImageView xposedCardViewArrow;
-    private ImageView deviceStatusImg;
-    private ListView deviceListView;
-    private RelativeLayout deviceCardViewArrowRL;
-    private ImageView deviceCardViewArrow;
-    private ImageView systemStatusImg;
-    private ListView systemListView;
-    private RelativeLayout systemCardViewArrowRL;
-    private ImageView systemCardViewArrow;
-    private ImageView appStatusImg;
-    private ListView appDetectListView;
-    private RelativeLayout appCardViewArrowRL;
-    private ImageView appCardViewArrow;
-    private ImageView googleStatusImg;
-    private ListView googleServiceView;
-    private RelativeLayout googleCardViewArrowRL;
-    private ImageView googleCardViewArrow;
-
-    private static boolean xposedLVUpdated = false;
-    private static boolean deviceLVUpdated = false;
-    private static boolean androidLVUpdated = false;
-    private static boolean appDetectLVUpdated = false;
-    private static boolean googleServiceLVUpdated = false;
+    ContentLoadingProgressBar clpbToolbar;
+    MenuItem itemShare;
 
     private static int currUiMode;
     private int cti;
 
-    private LayoutAnimationController viewAniCtrl0;
+    private interface MainCardView {
+        String getStr();
+        boolean getIsLoading();
+    }
 
-    View.OnClickListener DS_OCL = view -> {
-        try {
-            Intent intent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
-            startActivity(intent);
-        } catch (Exception e) {
-            try {
-                ComponentName componentName = new ComponentName("com.android.settings", "com.android.settings.DevelopmentSettings");
-                Intent intent = new Intent();
-                intent.setComponent(componentName);
-                intent.setAction("android.intent.action.View");
-                startActivity(intent);
-            } catch (Exception e1) {
-                try {
-                    Intent intent = new Intent("com.android.settings.APPLICATION_DEVELOPMENT_SETTINGS");//部分小米手机采用这种方式跳转
-                    startActivity(intent);
-                } catch (Exception e2) {
-                    e2.printStackTrace();
+    private List<MainCardView> mcvs = new ArrayList<>();
+
+    private static class DeviceCardView implements MainCardView {
+        private ResultCardView mResultCardView;
+        private String instSet = null, tMMB = null;
+
+        @Override
+        public boolean getIsLoading() {
+            return false;
+        }
+
+        public ResultCardView getResultCardView() {
+            return mResultCardView;
+        }
+
+        private void setResultCardView(ResultCardView resultCardView) {
+            this.mResultCardView = resultCardView;
+        }
+
+        public String getStr() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(getAppContext().getString(R.string.device));
+            sb.append(": \n");
+            if (tMMB != null) {
+                sb.append(getAppContext().getString(R.string.ram));
+                sb.append("\t");
+                sb.append(tMMB);
+                sb.append("\n");
+            }
+            if (instSet != null) {
+                sb.append(getAppContext().getString(R.string.instructionset_supported));
+                sb.append("\t");
+                sb.append(instSet);
+                sb.append("\n");
+            }
+            return sb.toString();
+        }
+
+        DeviceCardView(ResultCardView resultCardView, MainViewModel viewModel) {
+            setResultCardView(resultCardView);
+            mResultCardView.init(getAppContext());
+            mResultCardView.getTitleTV().setText(R.string.device);
+            ExpandableLayout.LayoutParams elpr = new ExpandableLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            elpr.setMargins(8, 8, 8, 8);
+            Context acontext = mResultCardView.getContext();
+            LayoutInflater inflater = LayoutInflater.from(acontext);
+            while (viewModel.getTotalMen() == null);
+            long totalMen = viewModel.getTotalMen();
+            tMMB = String.valueOf(totalMen / 1024 / 1024);
+            while (viewModel.getInstructionSet() == null);
+            instSet = viewModel.getInstructionSet();
+            int mencolor, instscolor, mci, ici;
+            if (totalMen < 1536 * 1024 * 1024)
+                mci = 0;
+            else if (totalMen < (long)2048 * 1024 * 1024)
+                mci = 1;
+            else
+                mci = 2;
+            if (instSet.contains("arm") && (instSet.contains("v7") || instSet.contains("v8")))
+                ici = 2;
+            else
+                ici = 1;
+            mencolor = viewModel.getStatusColors()[mci];
+            instscolor = viewModel.getStatusColors()[ici];
+            List<ExpandableLayout> dels = getResultCardView().getDetailELs();
+            ExpandableLayout elm = dels.get(mci), eli = dels.get(ici), elinf = mResultCardView.getInfoEL();
+            RelativeLayout rlm = (RelativeLayout)inflater.inflate(R.layout.items_not_selectable, elm, false), rli = (RelativeLayout)inflater.inflate(R.layout.items_not_selectable, eli, false);
+            TextView tv_cim = rlm.findViewById(R.id.check_item), tv_cii = rli.findViewById(R.id.check_item);
+            TextView tv_crm = rlm.findViewById(R.id.check_result), tv_cri = rli.findViewById(R.id.check_result);
+            tv_cim.setText(R.string.ram);
+            tv_cii.setText(R.string.instructionset_supported);
+            tv_crm.setText(tMMB + " MB");
+            tv_crm.setTextColor(mencolor);
+            tv_cri.setText(instSet);
+            tv_cri.setTextColor(instscolor);
+            List<Boolean> neal = mResultCardView.getNotEmpty();
+            if (elm == eli) {
+                LinearLayout ll0 = new LinearLayout(acontext);
+                ll0.setOrientation(LinearLayout.VERTICAL);
+                LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                llp.setMargins(8, 4, 8, 4);
+                ll0.addView(rlm, llp);
+                ll0.addView(rli, llp);
+                elm.addView(ll0);
+            } else {
+                elm.addView(rlm, elpr);
+                eli.addView(rli, elpr);
+            }
+            neal.set(mci, true);
+            neal.set(ici, true);
+            boolean f0 = false;
+            if (mci == 0 || mci == 1 || ici == 1) {
+                dels.get(0).expand();
+                dels.get(1).expand();
+                f0 = true;
+            }
+            if (f0 && !neal.get(2))
+                mResultCardView.getArrowIV().setRotation(180.0f);
+            mResultCardView.getArrowIV().setVisibility(View.VISIBLE);
+            int stivci = 2;
+            if (neal.get(0))
+                stivci = 0;
+            else if (neal.get(1))
+                stivci = 1;
+            ImageView stiv = mResultCardView.getStatusIV();
+            switch (stivci) {
+                case 2:
+                    stiv.setImageResource(R.drawable.baseline_check_circle_outline_24);
+                    break;
+                case 1:
+                    stiv.setImageResource(R.drawable.baseline_help_outline_24);
+                    break;
+                case 0:
+                    stiv.setImageResource(R.drawable.baseline_highlight_off_24);
+                    break;
+                default:
+                    break;
+            }
+            mResultCardView.getProgressBar().hide();
+            stiv.setColorFilter(viewModel.getStatusColors()[stivci]);
+            stiv.setVisibility(View.VISIBLE);
+            TextView tv_info = new TextView(acontext);
+            tv_info.setText(R.string.device_info_notice);
+            elinf.addView(tv_info, elpr);
+            mResultCardView.getInfoIV().setVisibility(View.VISIBLE);
+        }
+    }
+
+    private static class SystemCardView implements MainCardView {
+        @Override
+        public String getStr() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(getAppContext().getString(R.string.system));
+            sb.append(": \n");
+            for (int i = 0; i < 3; ++i) {
+                for (int j = 0; j < cis[i].size(); ++j) {
+                    sb.append(cis[i].get(j));
+                    sb.append("\t");
+                    sb.append(crs[i].get(j));
+                    sb.append("\n");
                 }
+            }
+            return sb.toString();
+        }
 
+        @Override
+        public boolean getIsLoading() {
+            return isLoading;
+        }
+
+        private ResultCardView mResultCardView;
+        private List<WrapContentListView> lvs = new ArrayList<>();
+        private List<Object> sys_status = new ArrayList<>();
+        private boolean isLoading = true;
+
+        private List<String>[] cis = new ArrayList[3];
+        private List<String>[] crs = new ArrayList[3];
+
+        public ResultCardView getResultCardView() {
+            return mResultCardView;
+        }
+
+        public void setResultCardView(ResultCardView resultCardView) {
+            this.mResultCardView = resultCardView;
+        }
+
+        SystemCardView(ResultCardView resultCardView, MainViewModel viewModel) {
+            setResultCardView(resultCardView);
+            mResultCardView.init(getAppContext());
+            mResultCardView.getTitleTV().setText(R.string.system);
+            ExpandableLayout.LayoutParams elpr = new ExpandableLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            elpr.setMargins(8, 8, 8, 8);
+            for (int i = 0; i < 3; ++i) {
+                cis[i] = new ArrayList<>();
+                crs[i] = new ArrayList<>();
+            }
+            Context acontext = mResultCardView.getContext();
+            for (int i = 0; i < 3; ++i) {
+                lvs.add(new WrapContentListView(acontext));
+                lvs.get(i).setDivider(null);
+            }
+            for (int i = 0; i < 3; ++i)
+                mResultCardView.getDetailELs().get(i).addView(lvs.get(i), elpr);
+            final Observer<List<Object>> sysObserver = sStatus -> {
+                changeViewToWait();
+                ((MainActivity)acontext).refreshTB();
+                sys_status = sStatus;
+                refresh(viewModel);
+            };
+            viewModel.getSysStatus().observe((AppCompatActivity)acontext, sysObserver);
+            LayoutInflater inflater = LayoutInflater.from(acontext);
+            LinearLayout infoLL = (LinearLayout)inflater.inflate(R.layout.sys_info, mResultCardView.getInfoEL(), false);
+            mResultCardView.getInfoEL().addView(infoLL);
+            mResultCardView.getInfoIV().setVisibility(View.VISIBLE);
+            mResultCardView.getRefreshIV().setOnClickListener(v -> update(viewModel));
+        }
+
+        private void changeViewToWait() {
+            isLoading = true;
+            mResultCardView.getRefreshIV().setVisibility(View.GONE);
+            mResultCardView.getStatusIV().setVisibility(View.GONE);
+            mResultCardView.getArrowIV().setVisibility(View.GONE);
+            mResultCardView.getProgressBar().show();
+            for (ExpandableLayout expandableLayout : mResultCardView.getDetailELs())
+                expandableLayout.collapse();
+            for (Boolean isne : mResultCardView.getNotEmpty())
+                isne = false;
+        }
+
+        private void changeViewAfterRefresh() {
+            isLoading = false;
+            mResultCardView.getProgressBar().hide();
+            ImageView ivstatus = mResultCardView.getStatusIV();
+            ivstatus.setImageResource(R.drawable.baseline_check_circle_outline_24);
+            ivstatus.setColorFilter(sct[2]);
+            List<Boolean> nel = mResultCardView.getNotEmpty();
+            if (nel.get(0)) {
+                ivstatus.setImageResource(R.drawable.baseline_highlight_off_24);
+                ivstatus.setColorFilter(sct[0]);
+            } else if (nel.get(1)) {
+                ivstatus.setImageResource(R.drawable.baseline_help_outline_24);
+                ivstatus.setColorFilter(sct[1]);
+            }
+            ivstatus.setVisibility(View.VISIBLE);
+            ImageView arrowiv = mResultCardView.getArrowIV();
+            arrowiv.setRotation(0.0f);
+            arrowiv.setVisibility(View.VISIBLE);
+            if (nel.get(0) || nel.get(1)) {
+                List<ExpandableLayout> els = mResultCardView.getDetailELs();
+                els.get(0).expand();
+                els.get(1).expand();
+                if (!nel.get(2))
+                    arrowiv.setRotation(180.0f);
+            }
+            mResultCardView.getRefreshIV().setVisibility(View.VISIBLE);
+        }
+
+        private void update(MainViewModel viewModel) {
+            if (!isLoading && viewModel.getFutureTasks()[0] == null) {
+                changeViewToWait();
+                ((MainActivity)mResultCardView.getContext()).refreshTB();
+                viewModel.checkSys();
             }
         }
-    };
 
-    View.OnClickListener GS_OCL = view -> {
-        Toast toast = Toast.makeText(MainActivity.this, getResources().getString(R.string.return_value) + ": " + gs_re_code, Toast.LENGTH_SHORT);
-        toast.show();
-        GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
-        if (googleApiAvailability.isUserResolvableError(gs_re_code))
-            googleApiAvailability.getErrorDialog(MainActivity.this, gs_re_code, 8996).show();
-    };
+        int[] sct;
+
+        private void refresh(MainViewModel viewModel) {
+            int[] carr = checkSystem(viewModel);
+            String[] ci = viewModel.getCheckSysItem();
+            for (List<String> ls : cis)
+                ls.clear();
+            for (List<String> lr : crs)
+                lr.clear();
+            addToLV(carr[0], ci[0], viewModel.getSystemVer());
+            String[] CHECK_PROP_ITEM = viewModel.getCheckPropItem();
+            for (int i = 1; i < sys_status.size(); ++i) {
+                if (i <= CHECK_PROP_ITEM.length) {
+                    String rs;
+                    if (i <= 2)
+                        rs = (String)sys_status.get(i);
+                    else
+                        rs = String.valueOf((Integer)sys_status.get(i));
+                    addToLV(carr[i], ci[i], rs);
+                } else if (i == CHECK_PROP_ITEM.length + 1) {
+                    if ((Boolean)sys_status.get(i))
+                        addToLV(carr[i], ci[i], getAppContext().getString(R.string.magisk_found));
+                    else
+                        addToLV(carr[i], ci[i], getAppContext().getString(R.string.magisk_not_found));
+                } else if (i == CHECK_PROP_ITEM.length + 2) {
+                    if ((Boolean)sys_status.get(i))
+                        addToLV(carr[i], ci[i], getAppContext().getString(R.string.found));
+                    else
+                        addToLV(carr[i], ci[i], getAppContext().getString(R.string.not_found));
+                }
+            }
+            if (ci.length == sys_status.size()) {
+                if ((Boolean)sys_status.get(sys_status.size() - 1))
+                    addToLV(carr[sys_status.size() - 1], ci[ci.length - 1], getAppContext().getString(R.string.on));
+                else
+                    addToLV(carr[sys_status.size() - 1], ci[ci.length - 1], getAppContext().getString(R.string.off));
+            }
+            Context acontext = mResultCardView.getContext();
+            for (int i = 0; i < 3; ++i) {
+                int icnt = cis[i].size();
+                if (icnt > 0)
+                    mResultCardView.getNotEmpty().set(i, true);
+                List<String> cr = crs[i];
+                int ii = i;
+                lvs.get(i).setAdapter(new BaseAdapter() {
+                    @Override
+                    public int getCount() {
+                        return icnt;
+                    }
+
+                    @Override
+                    public Object getItem(int position) {
+                        return cr.get(position);
+                    }
+
+                    @Override
+                    public long getItemId(int position) {
+                        return position;
+                    }
+
+                    @Override
+                    public View getView(int position, View convertView, ViewGroup parent) {
+                        RelativeLayout layout;
+                        LayoutInflater inflater = LayoutInflater.from(acontext);
+                        if (cis[ii].get(position).equals(ci[ci.length - 1])) {
+                            if (ii < 2) {
+                                layout = (RelativeLayout)inflater.inflate(R.layout.items, parent, false);
+                                layout.setOnClickListener(DS_OCL);
+                            } else
+                                layout = (RelativeLayout)inflater.inflate(R.layout.items_not_selectable, parent, false);
+                        } else if (cis[ii].get(position).equals(ci[5])) {
+                            if (ii < 2) {
+                                layout = (RelativeLayout)inflater.inflate(R.layout.items, parent, false);
+                            } else
+                                layout = (RelativeLayout)inflater.inflate(R.layout.items_not_selectable, parent, false);
+                        } else if (cis[ii].get(position).equals(ci[6])) {
+                            if (ii < 2) {
+                                layout = (RelativeLayout)inflater.inflate(R.layout.items, parent, false);
+                            } else
+                                layout = (RelativeLayout)inflater.inflate(R.layout.items_not_selectable, parent, false);
+                        } else
+                            layout = (RelativeLayout)inflater.inflate(R.layout.items_not_selectable, parent, false);
+                        ((TextView)layout.findViewById(R.id.check_item)).setText(cis[ii].get(position));
+                        TextView tvr = layout.findViewById(R.id.check_result);
+                        tvr.setText(crs[ii].get(position));
+                        tvr.setTextColor(sct[ii]);
+                        return layout;
+                    }
+                });
+            }
+            changeViewAfterRefresh();
+            ((MainActivity)acontext).refreshTB();
+        }
+
+        private void addToLV(int color, String cistr, String crstr) {
+            int si = 0, i;
+            for (i = 0; i < sct.length; ++i) {
+                if (sct[i] == color) {
+                    si = i;
+                    break;
+                }
+            }
+            if (i >= 3)
+                return;
+            cis[si].add(cistr);
+            crs[si].add(crstr);
+        }
+
+        private int[] checkSystem(MainViewModel viewModel) {
+            if (sys_status.size() <= 0)
+                return null;
+            int[] colorArray = new int[sys_status.size()];
+            sct = viewModel.getStatusColors();
+            for (int i = 0; i < colorArray.length; i++)
+                colorArray[i] = sct[2];
+            int SYSTEM_SDK_INT = (Integer)sys_status.get(0);
+            if (SYSTEM_SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1)
+                colorArray[0] = sct[0];
+            else if (SYSTEM_SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+                colorArray[0] = sct[1];
+            int syss_i = 1;
+            String[] CHECK_PROP_ITEM = viewModel.getCheckPropItem();
+            for (String check_prop:CHECK_PROP_ITEM) {
+                switch (check_prop) {
+                    case "persist.sys.usb.config":
+                        if ("adb".equals(sys_status.get(syss_i)))
+                            colorArray[syss_i] = sct[0];
+                        break;
+                    case "ro.build.type":
+                        if ("eng".equals(sys_status.get(syss_i)))
+                            colorArray[syss_i] = sct[0];
+                        break;
+                    case "ro.debuggable":
+                        if ((Integer)sys_status.get(syss_i) != 0)
+                            colorArray[syss_i] = sct[0];
+                        break;
+                    case "ro.secure":
+                        if ((Integer)sys_status.get(syss_i) == 0)
+                            colorArray[syss_i] = sct[0];
+                        break;
+                    default:
+                        break;
+                }
+                ++syss_i;
+            }
+            if ((Boolean)sys_status.get(syss_i))
+                colorArray[syss_i] = sct[0];
+            ++syss_i;
+            if ((Boolean)sys_status.get(syss_i))
+                colorArray[syss_i] = sct[1];
+            ++syss_i;
+            if (syss_i < sys_status.size()) {
+                Boolean isUSBDebugOn = (Boolean)sys_status.get(syss_i);
+                if (isUSBDebugOn)
+                    colorArray[syss_i] = sct[0];
+            }
+            return colorArray;
+        }
+
+        View.OnClickListener DS_OCL = view -> {
+            try {
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
+                mResultCardView.getContext().startActivity(intent);
+            } catch (Exception e) {
+                try {
+                    ComponentName componentName = new ComponentName("com.android.settings", "com.android.settings.DevelopmentSettings");
+                    Intent intent = new Intent();
+                    intent.setComponent(componentName);
+                    intent.setAction("android.intent.action.View");
+                    mResultCardView.getContext().startActivity(intent);
+                } catch (Exception e1) {
+                    try {
+                        Intent intent = new Intent("com.android.settings.APPLICATION_DEVELOPMENT_SETTINGS");//部分小米手机采用这种方式跳转
+                        mResultCardView.getContext().startActivity(intent);
+                    } catch (Exception e2) {
+                        e2.printStackTrace();
+                    }
+
+                }
+            }
+        };
+    }
+
+    private static class XposedCardView implements MainCardView {
+        @Override
+        public String getStr() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(getAppContext().getString(R.string.xposed_and_root));
+            sb.append(": \n");
+            for (int i = 0; i < 3; ++i) {
+                for (int j = 0; j < cis[i].size(); ++j) {
+                    sb.append(cis[i].get(j));
+                    sb.append("\t");
+                    sb.append(crs[i].get(j));
+                    sb.append("\n");
+                }
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public boolean getIsLoading() {
+            return isLoading;
+        }
+
+        private ResultCardView mResultCardView;
+        private List<WrapContentListView> lvs = new ArrayList<>();
+        private List<Integer> xposed_status = new ArrayList<>();
+        private boolean isLoading = true;
+
+        private List<String>[] cis = new ArrayList[3];
+        private List<String>[] crs = new ArrayList[3];
+
+        public ResultCardView getResultCardView() {
+            return mResultCardView;
+        }
+
+        public void setResultCardView(ResultCardView resultCardView) {
+            this.mResultCardView = resultCardView;
+        }
+
+        XposedCardView(ResultCardView resultCardView, MainViewModel viewModel) {
+            setResultCardView(resultCardView);
+            mResultCardView.init(getAppContext());
+            mResultCardView.getTitleTV().setText(R.string.xposed_and_root);
+            ExpandableLayout.LayoutParams elpr = new ExpandableLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            elpr.setMargins(8, 8, 8, 8);
+            for (int i = 0; i < 3; ++i) {
+                cis[i] = new ArrayList<>();
+                crs[i] = new ArrayList<>();
+            }
+            Context acontext = mResultCardView.getContext();
+            for (int i = 0; i < 3; ++i) {
+                lvs.add(new WrapContentListView(acontext));
+                lvs.get(i).setDivider(null);
+            }
+            for (int i = 0; i < 3; ++i)
+                mResultCardView.getDetailELs().get(i).addView(lvs.get(i), elpr);
+            final Observer<List<Integer>> xposedObserver = xStatus -> {
+                changeViewToWait();
+                ((MainActivity)acontext).refreshTB();
+                xposed_status = xStatus;
+                refresh(viewModel);
+            };
+            viewModel.getXposedStatus().observe((AppCompatActivity)acontext, xposedObserver);
+            LayoutInflater inflater = LayoutInflater.from(acontext);
+            LinearLayout infoLL = (LinearLayout)inflater.inflate(R.layout.xposed_root_dialog, mResultCardView.getInfoEL(), false);
+            ((Button)infoLL.findViewById(R.id.root_guide)).setOnClickListener(v -> new MaterialAlertDialogBuilder(acontext).setTitle(R.string.root_solution).setView(R.layout.root_solution_dialog).setPositiveButton(R.string.know_it, null).show());
+            ((Button)infoLL.findViewById(R.id.xposed_guide)).setOnClickListener(v -> new MaterialAlertDialogBuilder(acontext).setTitle(R.string.xposed_solution).setView(R.layout.xposed_solution_dialog).setPositiveButton(R.string.know_it, null).show());
+            mResultCardView.getInfoEL().addView(infoLL);
+            mResultCardView.getInfoIV().setVisibility(View.VISIBLE);
+            mResultCardView.getRefreshIV().setOnClickListener(v -> update(viewModel));
+        }
+
+        private void changeViewToWait() {
+            isLoading = true;
+            mResultCardView.getRefreshIV().setVisibility(View.GONE);
+            mResultCardView.getStatusIV().setVisibility(View.GONE);
+            mResultCardView.getArrowIV().setVisibility(View.GONE);
+            mResultCardView.getProgressBar().show();
+            for (ExpandableLayout expandableLayout : mResultCardView.getDetailELs())
+                expandableLayout.collapse();
+            for (Boolean isne : mResultCardView.getNotEmpty())
+                isne = false;
+        }
+
+        private void changeViewAfterRefresh() {
+            isLoading = false;
+            mResultCardView.getProgressBar().hide();
+            ImageView ivstatus = mResultCardView.getStatusIV();
+            ivstatus.setImageResource(R.drawable.baseline_check_circle_outline_24);
+            ivstatus.setColorFilter(sct[2]);
+            List<Boolean> nel = mResultCardView.getNotEmpty();
+            if (nel.get(0)) {
+                ivstatus.setImageResource(R.drawable.baseline_highlight_off_24);
+                ivstatus.setColorFilter(sct[0]);
+            } else if (nel.get(1)) {
+                ivstatus.setImageResource(R.drawable.baseline_help_outline_24);
+                ivstatus.setColorFilter(sct[1]);
+            }
+            ivstatus.setVisibility(View.VISIBLE);
+            ImageView arrowiv = mResultCardView.getArrowIV();
+            arrowiv.setRotation(0.0f);
+            arrowiv.setVisibility(View.VISIBLE);
+            if (nel.get(0) || nel.get(1)) {
+                List<ExpandableLayout> els = mResultCardView.getDetailELs();
+                els.get(0).expand();
+                els.get(1).expand();
+                if (!nel.get(2))
+                    arrowiv.setRotation(180.0f);
+            }
+            mResultCardView.getRefreshIV().setVisibility(View.VISIBLE);
+        }
+
+        private void update(MainViewModel viewModel) {
+            if (!isLoading && viewModel.getFutureTasks()[1] == null) {
+                Toast.makeText(mResultCardView.getContext(), R.string.xposed_root_refresh_notice, Toast.LENGTH_SHORT).show();
+                changeViewToWait();
+                ((MainActivity)mResultCardView.getContext()).refreshTB();
+                viewModel.checkXposed();
+            }
+        }
+
+        int[] sct;
+
+        private void refresh(MainViewModel viewModel) {
+            int[] carr = checkXposed(viewModel);
+            String[] ci = viewModel.getCheckXposedItem();
+            for (List<String> ls : cis)
+                ls.clear();
+            for (List<String> lr : crs)
+                lr.clear();
+            Context context = mResultCardView.getContext();
+            int cxicnt = viewModel.getCheckXposedItem().length;
+            for (int i = 0; i < cxicnt; ++i)
+                addToLV(carr[i], ci[i], xposed_status.get(i) == 0 ? context.getString(R.string.item_no_xposed) : context.getString(R.string.item_found_xposed));
+            addToLV(carr[cxicnt], context.getString(R.string.root_check), viewModel.getRootStatus()[xposed_status.get(cxicnt) + 1]);
+            for (int i = 0; i < 3; ++i) {
+                int icnt = cis[i].size();
+                if (icnt > 0)
+                    mResultCardView.getNotEmpty().set(i, true);
+                List<String> crl = crs[i];
+                List<String> cil = cis[i];
+                int ic = sct[i];
+                lvs.get(i).setAdapter(new BaseAdapter() {
+                    @Override
+                    public int getCount() {
+                        return icnt;
+                    }
+
+                    @Override
+                    public Object getItem(int position) {
+                        return crl.get(position);
+                    }
+
+                    @Override
+                    public long getItemId(int position) {
+                        return position;
+                    }
+
+                    @Override
+                    public View getView(int position, View convertView, ViewGroup parent) {
+                        if (convertView == null)
+                            convertView = LayoutInflater.from(context).inflate(R.layout.items_not_selectable, parent, false);
+                        ((TextView)convertView.findViewById(R.id.check_item)).setText(cil.get(position));
+                        TextView tvr = convertView.findViewById(R.id.check_result);
+                        tvr.setText(crl.get(position));
+                        tvr.setTextColor(ic);
+                        return convertView;
+                    }
+                });
+            }
+            changeViewAfterRefresh();
+            ((MainActivity)context).refreshTB();
+        }
+
+        private void addToLV(int color, String cistr, String crstr) {
+            int si = 0, i;
+            for (i = 0; i < sct.length; ++i) {
+                if (sct[i] == color) {
+                    si = i;
+                    break;
+                }
+            }
+            if (i >= sct.length)
+                return;
+            cis[si].add(cistr);
+            crs[si].add(crstr);
+        }
+
+        private int[] checkXposed(MainViewModel viewModel) {
+            if (xposed_status.size() <= 0)
+                return new int[0];
+            int[] colorArray = new int[xposed_status.size()];
+            sct = viewModel.getStatusColors();
+            for (int i = 0; i < colorArray.length; ++i)
+                colorArray[i] = xposed_status.get(i) == 0 ? sct[2] : sct[0];
+            return colorArray;
+        }
+    }
+
+    private static class GoogleCardView implements MainCardView {
+        @Override
+        public String getStr() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(getAppContext().getString(R.string.google_suite));
+            sb.append(": \n");
+            sb.append(getAppContext().getString(R.string.google_service));
+            sb.append("\t");
+            sb.append(rs);
+            sb.append("\t");
+            sb.append(gs_re_code);
+            sb.append("\n");
+            return sb.toString();
+        }
+
+        @Override
+        public boolean getIsLoading() {
+            return isLoading;
+        }
+
+        private ResultCardView mResultCardView;
+        private Integer gs_re_code;
+        private boolean isLoading = true;
+        private String rs;
+
+        public ResultCardView getResultCardView() {
+            return mResultCardView;
+        }
+
+        public void setResultCardView(ResultCardView resultCardView) {
+            this.mResultCardView = resultCardView;
+        }
+
+        GoogleCardView(ResultCardView resultCardView, MainViewModel viewModel) {
+            setResultCardView(resultCardView);
+            mResultCardView.init(getAppContext());
+            mResultCardView.getTitleTV().setText(R.string.google_suite);
+            Context acontext = mResultCardView.getContext();
+            ExpandableLayout.LayoutParams elpr = new ExpandableLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            final Observer<Integer> gsReObserver = gsrec -> {
+                changeViewToWait();
+                ((MainActivity)acontext).refreshTB();
+                gs_re_code = gsrec;
+                refresh(viewModel);
+            };
+            viewModel.getGsReCode().observe((AppCompatActivity)acontext, gsReObserver);
+            TextView infoTV = new TextView(acontext);
+            infoTV.setText(R.string.google_info_notice);
+            mResultCardView.getInfoEL().addView(infoTV, elpr);
+            mResultCardView.getInfoIV().setVisibility(View.VISIBLE);
+            mResultCardView.getRefreshIV().setOnClickListener(v -> update(viewModel));
+        }
+
+        private void changeViewToWait() {
+            isLoading = true;
+            mResultCardView.getRefreshIV().setVisibility(View.GONE);
+            mResultCardView.getStatusIV().setVisibility(View.GONE);
+            mResultCardView.getArrowIV().setVisibility(View.GONE);
+            mResultCardView.getProgressBar().show();
+            for (ExpandableLayout expandableLayout : mResultCardView.getDetailELs())
+                expandableLayout.collapse();
+            for (Boolean isne : mResultCardView.getNotEmpty())
+                isne = false;
+        }
+
+        private void changeViewAfterRefresh() {
+            isLoading = false;
+            mResultCardView.getProgressBar().hide();
+            ImageView ivstatus = mResultCardView.getStatusIV();
+            ivstatus.setImageResource(R.drawable.baseline_check_circle_outline_24);
+            ivstatus.setColorFilter(sct[2]);
+            List<Boolean> nel = mResultCardView.getNotEmpty();
+            if (nel.get(0)) {
+                ivstatus.setImageResource(R.drawable.baseline_highlight_off_24);
+                ivstatus.setColorFilter(sct[0]);
+            } else if (nel.get(1)) {
+                ivstatus.setImageResource(R.drawable.baseline_help_outline_24);
+                ivstatus.setColorFilter(sct[1]);
+            }
+            ivstatus.setVisibility(View.VISIBLE);
+            ImageView arrowiv = mResultCardView.getArrowIV();
+            arrowiv.setRotation(0.0f);
+            arrowiv.setVisibility(View.VISIBLE);
+            if (nel.get(0) || nel.get(1)) {
+                List<ExpandableLayout> els = mResultCardView.getDetailELs();
+                els.get(0).expand();
+                els.get(1).expand();
+                if (!nel.get(2))
+                    arrowiv.setRotation(180.0f);
+            }
+            mResultCardView.getRefreshIV().setVisibility(View.VISIBLE);
+        }
+
+        private void update(MainViewModel viewModel) {
+            if (!isLoading && viewModel.getFutureTasks()[1] == null) {
+                changeViewToWait();
+                ((MainActivity)mResultCardView.getContext()).refreshTB();
+                viewModel.checkGsReCode();
+            }
+        }
+
+        int[] sct;
+
+        private void refresh(MainViewModel viewModel) {
+            int ci;
+            sct = viewModel.getStatusColors();
+            List<ExpandableLayout> els = mResultCardView.getDetailELs();
+            for (ExpandableLayout el : els)
+                el.removeAllViews();
+            Context acontext = mResultCardView.getContext();
+            switch (gs_re_code) {
+                case ConnectionResult.SUCCESS:
+                    ci = 2;
+                    rs = acontext.getString(R.string.available);
+                    break;
+                case ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED:
+                    ci = 1;
+                    rs = acontext.getString(R.string.update_required);
+                    break;
+                case ConnectionResult.SERVICE_UPDATING:
+                    ci = 1;
+                    rs = acontext.getString(R.string.updating);
+                    break;
+                default:
+                    ci = 0;
+                    rs = acontext.getString(R.string.not_available);
+                    break;
+            }
+            RelativeLayout gsrl = (RelativeLayout)LayoutInflater.from(acontext).inflate(R.layout.items, els.get(ci), false);
+            ((TextView)gsrl.findViewById(R.id.check_item)).setText(R.string.google_service);
+            TextView tvr = gsrl.findViewById(R.id.check_result);
+            tvr.setText(rs);
+            tvr.setTextColor(sct[ci]);
+            gsrl.setOnClickListener(GS_OCL);
+            els.get(ci).addView(gsrl);
+            mResultCardView.getNotEmpty().set(ci, true);
+            changeViewAfterRefresh();
+            ((MainActivity)acontext).refreshTB();
+        }
+
+        View.OnClickListener GS_OCL = view -> {
+            Context acontext = mResultCardView.getContext();
+            Toast toast = Toast.makeText(acontext, acontext.getString(R.string.return_value) + ": " + gs_re_code, Toast.LENGTH_SHORT);
+            toast.show();
+            GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
+            if (googleApiAvailability.isUserResolvableError(gs_re_code))
+                googleApiAvailability.getErrorDialog((Activity)acontext, gs_re_code, 8996).show();
+        };
+    }
+
+    private static class BlackAppCardView implements MainCardView {
+        @Override
+        public String getStr() {
+            StringBuilder sb = new StringBuilder();
+            Context appcontext = getAppContext();
+            sb.append(appcontext.getString(R.string.app_list));
+            sb.append(": \n");
+            if (ris[0].size() > 0) {
+                for (ResolveInfo ri : ris[0]) {
+                    sb.append(ri.activityInfo.loadLabel(appcontext.getPackageManager()));
+                    sb.append("\t");
+                    sb.append(ri.activityInfo.packageName);
+                    sb.append("\n");
+                }
+            } else {
+                sb.append(getAppContext().getString(R.string.black_list_apps_not_found));
+                sb.append("\n");
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public boolean getIsLoading() {
+            return isLoading;
+        }
+
+        private ResultCardView mResultCardView;
+        private List<WrapContentListView> lvs = new ArrayList<>();
+        private List<ResolveInfo> resolveInfos = new ArrayList<>();
+        private boolean isLoading = true;
+
+        private List<ResolveInfo>[] ris = new ArrayList[3];
+
+        public ResultCardView getResultCardView() {
+            return mResultCardView;
+        }
+
+        public void setResultCardView(ResultCardView resultCardView) {
+            this.mResultCardView = resultCardView;
+        }
+
+        BlackAppCardView(ResultCardView resultCardView, MainViewModel viewModel) {
+            setResultCardView(resultCardView);
+            mResultCardView.init(getAppContext());
+            mResultCardView.getTitleTV().setText(R.string.app_list);
+            ExpandableLayout.LayoutParams elpr = new ExpandableLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            elpr.setMargins(8, 8, 8, 8);
+            for (int i = 0; i < 3; ++i)
+                ris[i] = new ArrayList<>();
+            Context acontext = mResultCardView.getContext();
+            for (int i = 0; i < 3; ++i) {
+                lvs.add(new WrapContentListView(acontext));
+                lvs.get(i).setDivider(null);
+            }
+            for (int i = 0; i < 3; ++i)
+                mResultCardView.getDetailELs().get(i).addView(lvs.get(i), elpr);
+            final Observer<List<ResolveInfo>> blacklistAppsObserver = resolveInfs -> {
+                changeViewToWait();
+                ((MainActivity)acontext).refreshTB();
+                resolveInfos = resolveInfs;
+                refresh(viewModel);
+            };
+            viewModel.getBlacklistApps().observe((AppCompatActivity)acontext, blacklistAppsObserver);
+            LinearLayout infoLL = (LinearLayout)LayoutInflater.from(acontext).inflate(R.layout.app_list_notice_dialog, mResultCardView.getInfoEL(), false);
+            mResultCardView.getInfoEL().addView(infoLL);
+            mResultCardView.getInfoIV().setVisibility(View.VISIBLE);
+            mResultCardView.getRefreshIV().setOnClickListener(v -> update(viewModel));
+        }
+
+        private void changeViewToWait() {
+            isLoading = true;
+            mResultCardView.getRefreshIV().setVisibility(View.GONE);
+            mResultCardView.getStatusIV().setVisibility(View.GONE);
+            mResultCardView.getArrowIV().setVisibility(View.GONE);
+            mResultCardView.getProgressBar().show();
+            for (ExpandableLayout expandableLayout : mResultCardView.getDetailELs())
+                expandableLayout.collapse();
+            for (Boolean isne : mResultCardView.getNotEmpty())
+                isne = false;
+        }
+
+        private void changeViewAfterRefresh() {
+            isLoading = false;
+            mResultCardView.getProgressBar().hide();
+            ImageView ivstatus = mResultCardView.getStatusIV();
+            ivstatus.setImageResource(R.drawable.baseline_check_circle_outline_24);
+            ivstatus.setColorFilter(sct[2]);
+            List<Boolean> nel = mResultCardView.getNotEmpty();
+            if (nel.get(0)) {
+                ivstatus.setImageResource(R.drawable.baseline_highlight_off_24);
+                ivstatus.setColorFilter(sct[0]);
+            } else if (nel.get(1)) {
+                ivstatus.setImageResource(R.drawable.baseline_help_outline_24);
+                ivstatus.setColorFilter(sct[1]);
+            }
+            ivstatus.setVisibility(View.VISIBLE);
+            ImageView arrowiv = mResultCardView.getArrowIV();
+            arrowiv.setRotation(0.0f);
+            arrowiv.setVisibility(View.VISIBLE);
+            if (nel.get(0) || nel.get(1)) {
+                List<ExpandableLayout> els = mResultCardView.getDetailELs();
+                els.get(0).expand();
+                els.get(1).expand();
+                if (!nel.get(2))
+                    arrowiv.setRotation(180.0f);
+            }
+            mResultCardView.getRefreshIV().setVisibility(View.VISIBLE);
+        }
+
+        private void update(MainViewModel viewModel) {
+            if (!isLoading && viewModel.getFutureTasks()[2] == null) {
+                changeViewToWait();
+                ((MainActivity)mResultCardView.getContext()).refreshTB();
+                viewModel.checkBlacklistApps();
+            }
+        }
+
+        int[] sct;
+
+        private void refresh(MainViewModel viewModel) {
+            for (List<ResolveInfo> ri : ris)
+                ri.clear();
+            ris[0] = resolveInfos;
+            sct = viewModel.getStatusColors();
+            Context acontext = mResultCardView.getContext();
+            LayoutInflater inflater = LayoutInflater.from(acontext);
+            if (ris[0].size() > 0)
+                mResultCardView.getNotEmpty().set(0, true);
+            else
+                mResultCardView.getNotEmpty().set(2, true);
+            lvs.get(0).setAdapter(new BaseAdapter() {
+                @Override
+                public int getCount() {
+                    return ris[0].size();
+                }
+
+                @Override
+                public Object getItem(int position) {
+                    return ris[0].get(position);
+                }
+
+                @Override
+                public long getItemId(int position) {
+                    return position;
+                }
+
+                View.OnClickListener oclun = v -> {
+                    String packName = ((TextView)v.findViewById(R.id.check_result)).getText().toString();
+                    Intent unintent = new Intent(Intent.ACTION_DELETE);
+                    unintent.setData(Uri.parse("package:" + packName));
+                    unintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    if (packName.equals("com.topjohnwu.magisk")) {
+                        new MaterialAlertDialogBuilder(acontext).setTitle(R.string.magisk_manager_detected).setMessage(R.string.magisk_manager_advice).setNeutralButton(R.string.uninstall_directly, (dialogInterface, i1) -> acontext.startActivity(unintent)).setNegativeButton(R.string.let_it_go_0, null).setPositiveButton(R.string.open_magisk_manager, (dialogInterface, i1) -> {
+                            PackageManager packageManager = acontext.getPackageManager();
+                            Intent open_magisk_manager_intent = packageManager.getLaunchIntentForPackage(packName);
+                            acontext.startActivity(open_magisk_manager_intent);
+                        }).show();
+                    } else
+                        acontext.startActivity(unintent);
+                };
+
+                @Override
+                public View getView(int position, View convertView, ViewGroup parent) {
+                    if (convertView == null) {
+                        convertView = inflater.inflate(R.layout.items, parent, false);
+                        convertView.setOnClickListener(oclun);
+                    }
+                    TextView tv01 = convertView.findViewById(R.id.check_item);
+                    tv01.setText(ris[0].get(position).activityInfo.loadLabel(acontext.getPackageManager()));
+                    TextView tv02 = convertView.findViewById(R.id.check_result);
+                    tv02.setText(ris[0].get(position).activityInfo.packageName);
+                    tv01.setTextColor(sct[0]);
+                    tv02.setTextColor(sct[0]);
+                    return convertView;
+                }
+            });
+            lvs.get(2).setAdapter(new BaseAdapter() {
+                @Override
+                public int getCount() {
+                    return resolveInfos.size() > 0 ? 0 : 1;
+                }
+
+                @Override
+                public Object getItem(int position) {
+                    return null;
+                }
+
+                @Override
+                public long getItemId(int position) {
+                    return 0;
+                }
+
+                @Override
+                public View getView(int position, View convertView, ViewGroup parent) {
+                    if (position == 0) {
+                        RelativeLayout rl2 = (RelativeLayout)inflater.inflate(R.layout.item_not_selectable, parent, false);
+                        TextView tv2 = rl2.findViewById(R.id.check_item);
+                        tv2.setText(R.string.black_list_apps_not_found);
+                        tv2.setTextColor(sct[2]);
+                        return rl2;
+                    }
+                    return null;
+                }
+            });
+            changeViewAfterRefresh();
+            ((MainActivity)acontext).refreshTB();
+        }
+    }
 
     @Override
     protected void onResume() {
@@ -170,287 +1081,118 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTitle(R.string.app_name);
+        setTitle(R.string.app_name_short_0);
         currUiMode = getSysUiMode();
+        setTheme(R.style.MainActivityTheme);
         setContentView(R.layout.activity_main);
-        xposedStatusImg = (ImageView) findViewById(R.id.root_xposed_status_img);
-        xposedListView = (ListView) findViewById(R.id.b);
-        xposedCardViewArrowRL = (RelativeLayout) findViewById(R.id.root_xposed_info_arrow_rl);
-        xposedCardViewArrow = (ImageView) findViewById(R.id.root_xposed_info_arrow);
-        final Button deviceInfoButton = (Button) findViewById(R.id.device_info);
-        final Button androidInfoButton = (Button) findViewById(R.id.android_info);
-        final Button xposedRootInfoButton = (Button) findViewById(R.id.xposed_and_root_info);
-        final Button googleInfoButton = (Button) findViewById(R.id.google_service_info);
-        final Button appDetectInfoButton = (Button) findViewById(R.id.app_detect_info);
-        deviceStatusImg = (ImageView) findViewById(R.id.device_status_img);
-        deviceListView = (ListView) findViewById(R.id.device_detail);
-        deviceCardViewArrowRL = (RelativeLayout) findViewById(R.id.device_info_arrow_rl);
-        deviceCardViewArrow = (ImageView) findViewById(R.id.device_info_arrow);
-        systemStatusImg = (ImageView) findViewById(R.id.system_status_img);
-        systemListView = (ListView) findViewById(R.id.android_detail);
-        systemCardViewArrowRL = (RelativeLayout) findViewById(R.id.system_info_arrow_rl);
-        systemCardViewArrow = (ImageView) findViewById(R.id.system_info_arrow);
-        appStatusImg = (ImageView) findViewById(R.id.app_status_img);
-        appDetectListView = (ListView) findViewById(R.id.app_detect_detail);
-        appCardViewArrowRL = (RelativeLayout) findViewById(R.id.app_info_arrow_rl);
-        appCardViewArrow = (ImageView) findViewById(R.id.app_info_arrow);
-        googleStatusImg = (ImageView) findViewById(R.id.google_status_img);
-        googleServiceView = (ListView) findViewById(R.id.google_service_detail);
-        googleCardViewArrowRL = (RelativeLayout) findViewById(R.id.google_info_arrow_rl);
-        googleCardViewArrow = (ImageView) findViewById(R.id.google_info_arrow);
 
-        Animation viewAnimation0 = AnimationUtils.loadAnimation(MainActivity.this, R.anim.anim_item_0);
-        viewAniCtrl0 = new LayoutAnimationController(viewAnimation0);
-        viewAniCtrl0.setDelay(0.5f);
-
-        if (deviceInfoButton != null) {
-            deviceInfoButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.device).setMessage(R.string.device_info_notice).setPositiveButton(R.string.know_it, null).show();
-                }
-            });
-        }
-        if (androidInfoButton != null) {
-            androidInfoButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.android_en).setMessage(R.string.android_info_notice).setNeutralButton(R.string.system_prop_detail, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.system_prop).setMessage(R.string.system_prop_notice).setNeutralButton(R.string.how_to_modify_system_prop, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.method_to_modify_system_prop).setView(R.layout.method_to_modify_system_prop_dialog).setPositiveButton(R.string.know_it, null).show();
-                                }
-                            }).setPositiveButton(R.string.know_it, null).show();
-                        }
-                    }).setPositiveButton(R.string.know_it, null).show();
-                }
-            });
-        }
-        if (googleInfoButton != null) {
-            googleInfoButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.google_suite).setMessage(R.string.google_info_notice).setPositiveButton(R.string.know_it, null).show();
-                }
-            });
-        }
-        if (xposedRootInfoButton != null) {
-            xposedRootInfoButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    View xposed_root_dialog_view = View.inflate(MainActivity.this, R.layout.xposed_root_dialog, null);
-                    ((Button)xposed_root_dialog_view.findViewById(R.id.root_guide)).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.root_solution).setView(R.layout.root_solution_dialog).setPositiveButton(R.string.know_it, null).show();
-                        }
-                    });
-                    ((Button)xposed_root_dialog_view.findViewById(R.id.xposed_guide)).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.xposed_solution).setView(R.layout.xposed_solution_dialog).setPositiveButton(R.string.know_it, null).show();
-                        }
-                    });
-                    new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.xposed_and_root).setView(xposed_root_dialog_view).setPositiveButton(R.string.know_it, null).show();
-                }
-            });
-        }
-        if (appDetectInfoButton != null) {
-            appDetectInfoButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.app_list).setView(R.layout.app_list_notice_dialog).setPositiveButton(R.string.know_it, null).show();
-                }
-            });
-        }
+        ((TextView)findViewById(R.id.tv_stabar)).getLayoutParams().height = getResources().getDimensionPixelSize(getResources().getIdentifier("status_bar_height", "dimen", "android"));
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        clpbToolbar = toolbar.findViewById(R.id.clpb_toolbar);
+        setSupportActionBar(toolbar);
 
         mViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()).create(MainViewModel.class);
 
-        deviceCardViewArrowRL.setOnClickListener(view -> {
-            if (deviceListView.getVisibility() == View.VISIBLE) {
-                deviceListView.setVisibility(View.GONE);
-                deviceCardViewArrow.setRotation(0);
-            } else {
-                deviceListView.setVisibility(View.VISIBLE);
-                showDeviceLV(deviceColorArr, viewAniCtrl0);
-                deviceCardViewArrow.setRotation(180);
-            }
-        });
+        LinearLayout mainLL = findViewById(R.id.ll_main);
+        deviceResultCardView = (ResultCardView)LayoutInflater.from(this).inflate(R.layout.result_cardview, mainLL, false);
+        mainLL.addView(deviceResultCardView);
 
-        final Observer<List<Object>> sysObserver = new Observer<List<Object>>() {
-            @Override
-            public void onChanged(List<Object> sStatus) {
-                sys_status = sStatus;
-                refreshSystemCV();
-            }
-        };
-        mViewModel.getSysStatus().observe(this, sysObserver);
-        Button system_info_refresh = (Button) findViewById(R.id.system_info_refresh);
-        system_info_refresh.setOnClickListener(view -> mViewModel.checkSys());
-        systemCardViewArrowRL.setOnClickListener(view -> {
-            if (systemListView.getVisibility() == View.VISIBLE) {
-                systemListView.setVisibility(View.GONE);
-                systemCardViewArrow.setRotation(0);
-            } else {
-                systemListView.setVisibility(View.VISIBLE);
-                if (!androidLVUpdated) {
-                    showAndroidLV(systemColorArr, viewAniCtrl0);
-                    androidLVUpdated = true;
-                }
-                systemCardViewArrow.setRotation(180);
-            }
-        });
+        ResultCardView sysResultCardView = (ResultCardView)LayoutInflater.from(this).inflate(R.layout.result_cardview, mainLL, false);
+        mainLL.addView(sysResultCardView);
+        SystemCardView sysCardView = new SystemCardView(sysResultCardView, mViewModel);
+        mcvs.add(sysCardView);
 
-        CHECK_ITEM[0]=getResources().getString(R.string.load_xposed_toolkit);
-        CHECK_ITEM[1]=getResources().getString(R.string.search_feature_dll);
-        CHECK_ITEM[2]=getResources().getString(R.string.code_stack_search_invoker);
-        CHECK_ITEM[3]=getResources().getString(R.string.check_xposed_install_status);
-        CHECK_ITEM[4]=getResources().getString(R.string.judge_system_method_hook);
-        CHECK_ITEM[5]=getResources().getString(R.string.check_virtual_xposed);
-        CHECK_ITEM[6]=getResources().getString(R.string.search_xposed_runtime_lib);
-        CHECK_ITEM[7]=getResources().getString(R.string.kernel_search_xposed_link_lib);
-        CHECK_ITEM[8]=getResources().getString(R.string.judge_envir_variable_chara_word);
-        ROOT_STATUS[0]=getResources().getString(R.string.get_error);
-        ROOT_STATUS[1]=getResources().getString(R.string.item_no_root);
-        ROOT_STATUS[2]=getResources().getString(R.string.item_found_root);
+        ResultCardView xposedResultCardView = (ResultCardView)LayoutInflater.from(this).inflate(R.layout.result_cardview, mainLL, false);
+        mainLL.addView(xposedResultCardView);
+        XposedCardView xposedCardView = new XposedCardView(xposedResultCardView, mViewModel);
+        mcvs.add(xposedCardView);
 
-        final Observer<List<Integer>> xposedObserver = new Observer<List<Integer>>() {
-            @Override
-            public void onChanged(List<Integer> xStatus) {
-                xposed_status = xStatus;
-                refreshXposedCV();
-            }
-        };
-        mViewModel.getXposedStatus().observe(this, xposedObserver);
-        Button root_xposed_refresh = (Button) findViewById(R.id.root_xposed_info_refresh);
-        root_xposed_refresh.setOnClickListener(view -> {
-            Toast.makeText(MainActivity.this, R.string.xposed_root_refresh_notice, Toast.LENGTH_SHORT).show();
-            mViewModel.checkXposed();
-        });
-        xposedCardViewArrowRL.setOnClickListener(view -> {
-            if (xposedListView.getVisibility() == View.VISIBLE) {
-                xposedListView.setVisibility(View.GONE);
-                xposedCardViewArrow.setRotation(0);;
-            } else {
-                xposedListView.setVisibility(View.VISIBLE);
-                if (!xposedLVUpdated) {
-                    showXposedLV(xposedColorArr, viewAniCtrl0);
-                    xposedLVUpdated = true;
-                }
-                xposedCardViewArrow.setRotation(180);
-            }
-        });
+        ResultCardView googleResultCardView = (ResultCardView)LayoutInflater.from(this).inflate(R.layout.result_cardview, mainLL, false);
+        mainLL.addView(googleResultCardView);
+        GoogleCardView googleCardView = new GoogleCardView(googleResultCardView, mViewModel);
+        mcvs.add(googleCardView);
 
-        final Observer<List<ResolveInfo>> blacklistAppsObserver = new Observer<List<ResolveInfo>>() {
-            @Override
-            public void onChanged(List<ResolveInfo> resolveInfos) {
-                blacklist_apps = resolveInfos;
-                refreshAppListCV();
-            }
-        };
-        mViewModel.getBlacklistApps().observe(this, blacklistAppsObserver);
-        Button app_list_refresh = (Button) findViewById(R.id.app_info_refresh);
-        app_list_refresh.setOnClickListener(view -> mViewModel.checkBlacklistApps());
-        appCardViewArrowRL.setOnClickListener(view -> {
-            if (appDetectListView.getVisibility() == View.VISIBLE) {
-                appDetectListView.setVisibility(View.GONE);
-                appCardViewArrow.setRotation(0);
-            } else {
-                appDetectListView.setVisibility(View.VISIBLE);
-                if (!appDetectLVUpdated) {
-                    showAppListLV(viewAniCtrl0);
-                    appDetectLVUpdated = true;
-                }
-                appCardViewArrow.setRotation(180);
-            }
-        });
+        ResultCardView baCardView = (ResultCardView)LayoutInflater.from(this).inflate(R.layout.result_cardview, mainLL, false);
+        mainLL.addView(baCardView);
+        BlackAppCardView blackAppCardView = new BlackAppCardView(baCardView, mViewModel);
+        mcvs.add(blackAppCardView);
 
-        final Observer<Integer> gsReObserver = new Observer<Integer>() {
-            @Override
-            public void onChanged(Integer gsrec) {
-                gs_re_code = gsrec;
-                refreshGoogleCV();
-            }
-        };
-        mViewModel.getGsReCode().observe(this, gsReObserver);
-        Button google_refresh = (Button) findViewById(R.id.google_info_refresh);
-        google_refresh.setOnClickListener(view -> mViewModel.checkGsReCode());
-        googleCardViewArrowRL.setOnClickListener(view -> {
-            if (googleServiceView.getVisibility() == View.VISIBLE) {
-                googleServiceView.setVisibility(View.GONE);
-                googleCardViewArrow.setRotation(0);
-            } else {
-                googleServiceView.setVisibility(View.VISIBLE);
-                if (!googleServiceLVUpdated) {
-                    showGoogleLV(googleColorArr, viewAniCtrl0);
-                    googleServiceLVUpdated = true;
-                }
-                googleCardViewArrow.setRotation(180);
-            }
-        });
+        TextView tvbtm = new TextView(this);
+        LinearLayout.LayoutParams mainLLL = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, getResources().getDimensionPixelSize(getResources().getIdentifier("navigation_bar_height", "dimen", "android")));
+        mainLL.addView(tvbtm, mainLLL);
+
 
         new UpdateTask(MainActivity.this, true, false).update();
     }
 
-    private void showDeviceLV(int[] colorArray, LayoutAnimationController viewAniCtrl) {
-        if (deviceListView != null) {
-            deviceListView.setVisibility(View.VISIBLE);
-                if (!deviceLVUpdated && viewAniCtrl != null)
-                    deviceListView.setLayoutAnimation(viewAniCtrl);
-                deviceListView.setAdapter(new BaseAdapter() {
-                    @Override
-                    public int getCount() {
-                        return 2;
-                    }
-
-                    @Override
-                    public Object getItem(int i) {
-                        return device_status.get(i);
-                    }
-
-                    @Override
-                    public long getItemId(int i) {
-                        return i;
-                    }
-
-                    @Override
-                    public View getView(int i, View view, ViewGroup viewGroup) {
-                        RelativeLayout layout = (RelativeLayout) LayoutInflater.from(MainActivity.this).inflate(R.layout.items_not_selectable, null);
-                        TextView textView1 = (TextView) layout.findViewById(R.id.check_item);
-                        TextView textView2 = (TextView) layout.findViewById(R.id.check_result);
-                        if (i == 0) {
-                            textView1.setText(R.string.ram);
-                            textView2.setText((long)getItem(i) / 1024 / 1024 + " MB");
-                        } else if (i == 1) {
-                            textView1.setText(R.string.instructionset_supported);
-                            textView2.setText((String)getItem(i));
-                        }
-                        textView2.setTextColor(colorArray[i]);
-                        return layout;
-                    }
-                });
-                deviceLVUpdated = true;
-        }
-    }
+    boolean hideitemshare = true;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         SupportMenuInflater inflater = new SupportMenuInflater(this);
         inflater.inflate(R.menu.activity_main, menu);
+        itemShare = menu.findItem(R.id.id_menu_share);
+        if (hideitemshare)
+            itemShare.setVisible(false);
+        else
+            itemShare.setVisible(true);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    public void refreshTB() {
+        boolean isloading = false;
+        for (MainCardView mcv : mcvs) {
+            if (mcv.getIsLoading())
+                isloading = true;
+        }
+        if (isloading) {
+            hideitemshare = true;
+            invalidateOptionsMenu();
+            clpbToolbar.show();
+        } else {
+            clpbToolbar.hide();
+            hideitemshare = false;
+            invalidateOptionsMenu();
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
+            case R.id.id_menu_share:
+                StringBuilder sb = new StringBuilder();
+                sb.append(getString(R.string.app_name));
+                sb.append("\t");
+                String appver = "";
+                try {
+                    PackageInfo pInfo = getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0);
+                    appver = pInfo.versionName;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                sb.append(appver);
+                sb.append("\n");
+                for (MainCardView mcv : mcvs) {
+                    String res = mcv.getStr();
+                    if (res != null) {
+                        sb.append(res);
+                        sb.append("\n");
+                    }
+                }
+                Intent shareintent = new Intent();
+                shareintent.setAction(Intent.ACTION_SEND);
+                shareintent.setType("text/plain");
+                String sharetitle = getString(R.string.app_name) + "\t" + getString(R.string.check_results);
+                shareintent.putExtra(Intent.EXTRA_SUBJECT, sharetitle);
+                shareintent.putExtra(Intent.EXTRA_TEXT, sb.toString());
+                shareintent = Intent.createChooser(shareintent, sharetitle);
+                startActivity(shareintent);
+                break;
             case R.id.id_menu_explanation:
                 View explanation_dialog_view = View.inflate(MainActivity.this, R.layout.explanation_dialog, null);
-                ((TextView)explanation_dialog_view.findViewById(R.id.green_words)).setTextColor(Color.GREEN);
-                ((TextView)explanation_dialog_view.findViewById(R.id.yellow_words)).setTextColor(Color.YELLOW);
-                ((TextView)explanation_dialog_view.findViewById(R.id.red_words)).setTextColor(Color.RED);
+                ((TextView)explanation_dialog_view.findViewById(R.id.green_words)).setTextColor(mViewModel == null ? Color.GREEN : mViewModel.getStatusColors()[2]);
+                ((TextView)explanation_dialog_view.findViewById(R.id.yellow_words)).setTextColor(mViewModel == null ? Color.YELLOW : mViewModel.getStatusColors()[1]);
+                ((TextView)explanation_dialog_view.findViewById(R.id.red_words)).setTextColor(mViewModel == null ? Color.RED : mViewModel.getStatusColors()[0]);
                 new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.menu_explanation).setView(explanation_dialog_view).setPositiveButton(R.string.know_it, null).show();
                 break;
             case R.id.id_menu_set_theme:
@@ -478,11 +1220,11 @@ public class MainActivity extends AppCompatActivity {
                                         recreate();
                                 } else if (cti == 1) {
                                     setCurrAppTheme(0x01);
-                                    if (getDarkModeStatus(getSysUiMode()))
+                                    if (ti == 2 || getDarkModeStatus(getSysUiMode()))
                                         recreate();
                                 } else if (cti == 2) {
                                     setCurrAppTheme(0x10);
-                                    if (!getDarkModeStatus(getSysUiMode()))
+                                    if (ti == 1 || !getDarkModeStatus(getSysUiMode()))
                                         recreate();
                                 }
                             }
@@ -531,418 +1273,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private int[] checkSystem() {
-        if (sys_status.size() <= 0)
-            return null;
-        int[] colorArray = new int[sys_status.size()];
-        for (int i = 0; i < colorArray.length; i++)
-            colorArray[i] = Color.GREEN;
-        int SYSTEM_SDK_INT = (Integer)sys_status.get(0);
-        SYSTEM_VER = mViewModel.getSystemVer();
-        if (SYSTEM_SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1)
-            colorArray[0] = Color.RED;
-        else if (SYSTEM_SDK_INT < Build.VERSION_CODES.LOLLIPOP)
-            colorArray[0] = Color.YELLOW;
-        int syss_i = 1;
-        for (String check_prop:CHECK_PROP_ITEM) {
-            switch (check_prop) {
-                case "persist.sys.usb.config":
-                    if ("adb".equals(sys_status.get(syss_i)))
-                        colorArray[syss_i] = Color.RED;
-                    break;
-                case "ro.build.type":
-                    if ("eng".equals(sys_status.get(syss_i)))
-                        colorArray[syss_i] = Color.RED;
-                    break;
-                case "ro.debuggable":
-                    if ((Integer)sys_status.get(syss_i) != 0)
-                        colorArray[syss_i] = Color.RED;
-                    break;
-                case "ro.secure":
-                    if ((Integer)sys_status.get(syss_i) == 0)
-                        colorArray[syss_i] = Color.RED;
-                    break;
-                default:
-                    break;
-            }
-            syss_i++;
-        }
-        if (syss_i < sys_status.size()) {
-            Boolean isUSBDebugOn = (Boolean)sys_status.get(syss_i);
-            if (isUSBDebugOn)
-                colorArray[syss_i] = Color.RED;
-        }
-        return colorArray;
-    }
-
-    private void showAndroidLV(int[] colorArray, LayoutAnimationController viewAniCtrl) {
-        if (systemListView != null) {
-            systemListView.setVisibility(View.VISIBLE);
-            if (viewAniCtrl != null)
-                systemListView.setLayoutAnimation(viewAniCtrl);
-            systemListView.setAdapter(new BaseAdapter() {
-                @Override
-                public int getCount() {
-                    return colorArray.length;
-                }
-
-                @Override
-                public Object getItem(int i) {
-                    return sys_status.get(i);
-                }
-
-                @Override
-                public long getItemId(int i) {
-                    return i;
-                }
-
-                @Override
-                public View getView(int i, View view, ViewGroup viewGroup) {
-                    RelativeLayout layout;
-                    if (i == getCount() - 1 && "adb".equals(getItem(1)) && (Boolean)getItem(i)) {
-                        layout = (RelativeLayout) LayoutInflater.from(MainActivity.this).inflate(R.layout.items, null);
-                        TextView textView1 = (TextView) layout.findViewById(R.id.check_item);
-                        TextView textView2 = (TextView) layout.findViewById(R.id.check_result);
-                        textView1.setText(R.string.usb_debug);
-                        textView2.setTextColor(colorArray[i]);
-                        textView2.setText(R.string.on);
-                        layout.setOnClickListener(DS_OCL);
-                        return layout;
-                    } else
-                        layout = (RelativeLayout) LayoutInflater.from(MainActivity.this).inflate(R.layout.items_not_selectable, null);
-                    TextView textView1 = (TextView) layout.findViewById(R.id.check_item);
-                    TextView textView2 = (TextView) layout.findViewById(R.id.check_result);
-                    textView2.setTextColor(colorArray[i]);
-                    if (i == 0) {
-                        textView1.setText(R.string.version);
-                        textView2.setText(mViewModel.getSystemVer());
-                        return layout;
-                    } else {
-                        textView1.setText(CHECK_PROP_ITEM[i - 1]);
-                    }
-                    String prop_val_str;
-                    if (getItem(i) instanceof String)
-                        prop_val_str = (String)getItem(i);
-                    else
-                        prop_val_str = String.valueOf(getItem(i));
-                    textView2.setText(prop_val_str);
-                    return layout;
-                }
-            });
-        }
-    }
-
-    private void refreshSystemCV() {
-        androidLVUpdated = false;
-        systemColorArr = checkSystem();
-        int status_img_color = Color.GREEN;
-        for (int colorint:systemColorArr) {
-            if (colorint == Color.RED) {
-                status_img_color = Color.RED;
-                break;
-            }
-            if (colorint == Color.YELLOW)
-                status_img_color = Color.YELLOW;
-        }
-        switch (status_img_color) {
-            case Color.GREEN:
-                systemStatusImg.setImageResource(R.drawable.baseline_check_circle_outline_24);
-                break;
-            case Color.YELLOW:
-                systemStatusImg.setImageResource(R.drawable.baseline_help_outline_24);
-                break;
-            case Color.RED:
-                systemStatusImg.setImageResource(R.drawable.baseline_highlight_off_24);
-                break;
-            default:
-                break;
-        }
-        systemStatusImg.setColorFilter(status_img_color);
-        if (status_img_color != Color.GREEN) {
-            showAndroidLV(systemColorArr, viewAniCtrl0);
-            androidLVUpdated = true;
-            systemCardViewArrow.setRotation(180);
-        } else {
-            systemListView.setVisibility(View.GONE);
-            systemCardViewArrow.setRotation(0);
-        }
-    }
-
-    private int[] checkRootXposed() {
-        int[] colorArray = new int[CHECK_ITEM.length + 1];
-        for (int position = 0; position < CHECK_ITEM.length + 1; position++) {
-            int itemStatus = xposed_status.get(position);
-            colorArray[position] = itemStatus == 0 ? Color.GREEN : Color.RED;
-        }
-        return colorArray;
-    }
-
-    private void showXposedLV(int[] colorArray, LayoutAnimationController viewAniCtrl) {
-        if (xposedListView != null) {
-            xposedListView.setVisibility(View.VISIBLE);
-            if (viewAniCtrl != null)
-                xposedListView.setLayoutAnimation(viewAniCtrl);
-            xposedListView.setAdapter(new BaseAdapter() {
-                @Override
-                public int getCount() {
-                    return CHECK_ITEM.length + 1;
-                }
-
-                @Override
-                public Object getItem(int i) {
-                    return xposed_status.get(i);
-                }
-
-                @Override
-                public long getItemId(int i) {
-                    return i;
-                }
-
-                @Override
-                public View getView(int i, View view, ViewGroup viewGroup) {
-                    RelativeLayout layout = (RelativeLayout) LayoutInflater.from(MainActivity.this).inflate(R.layout.items_not_selectable, null);
-                    TextView textView1 = (TextView) layout.findViewById(R.id.check_item);
-                    TextView textView2 = (TextView) layout.findViewById(R.id.check_result);
-                    int itemStatus = (int)getItem(i);
-                    if (i == CHECK_ITEM.length) {
-                        textView1.setText(R.string.root_check);
-                        textView2.setText(ROOT_STATUS[itemStatus + 1]);
-                    } else {
-                        textView1.setText(CHECK_ITEM[i]);
-                        textView2.setText((itemStatus == 0 ? getString(R.string.item_no_xposed) : getString(R.string.item_found_xposed)));
-                    }
-                    textView2.setTextColor(colorArray[i]);
-                    return layout;
-                }
-            });
-        }
-    }
-
-    private void refreshXposedCV() {
-        xposedLVUpdated = false;
-        xposedColorArr = checkRootXposed();
-        int status_img_color = Color.GREEN;
-        for (int colorint: xposedColorArr) {
-            if (colorint == Color.RED) {
-                status_img_color = Color.RED;
-                break;
-            }
-            if (colorint == Color.YELLOW)
-                status_img_color = Color.YELLOW;
-        }
-        switch (status_img_color) {
-            case Color.GREEN:
-                xposedStatusImg.setImageResource(R.drawable.baseline_check_circle_outline_24);
-                break;
-            case Color.YELLOW:
-                xposedStatusImg.setImageResource(R.drawable.baseline_help_outline_24);
-                break;
-            case Color.RED:
-                xposedStatusImg.setImageResource(R.drawable.baseline_highlight_off_24);
-                break;
-            default:
-                break;
-        }
-        xposedStatusImg.setColorFilter(status_img_color);
-        if (status_img_color != Color.GREEN) {
-            showXposedLV(xposedColorArr, viewAniCtrl0);
-            xposedLVUpdated = true;
-            xposedCardViewArrow.setRotation(180);
-        } else {
-            xposedListView.setVisibility(View.GONE);
-            xposedCardViewArrow.setRotation(0);
-        }
-    }
-
-    private int[] checkGoogle() {
-        int[] colorArray = new int[1];
-        switch (gs_re_code) {
-            case ConnectionResult.SUCCESS:
-                colorArray[0] = Color.GREEN;
-                break;
-            case ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED:
-                colorArray[0] = Color.YELLOW;
-                break;
-            case ConnectionResult.SERVICE_UPDATING:
-                colorArray[0] = Color.YELLOW;
-                break;
-            default:
-                colorArray[0] = Color.YELLOW;
-                break;
-        }
-        return colorArray;
-    }
-
-    private void showGoogleLV(int[] colorArray, LayoutAnimationController viewAniCtrl) {
-        if (googleServiceView != null) {
-            googleServiceView.setVisibility(View.VISIBLE);
-            if (viewAniCtrl != null)
-                googleServiceView.setLayoutAnimation(viewAniCtrl);
-            googleServiceView.setAdapter(new BaseAdapter() {
-                @Override
-                public int getCount() {
-                    return 1;
-                }
-
-                @Override
-                public Object getItem(int i) {
-                    return gs_re_code;
-                }
-
-                @Override
-                public long getItemId(int i) {
-                    return i;
-                }
-
-                @Override
-                public View getView(int i, View view, ViewGroup viewGroup) {
-                    RelativeLayout layout = (RelativeLayout) LayoutInflater.from(MainActivity.this).inflate(R.layout.items, null);
-                    TextView textView1 = (TextView) layout.findViewById(R.id.check_item);
-                    TextView textView2 = (TextView) layout.findViewById(R.id.check_result);
-                    if (i == 0) {
-                        textView1.setText(R.string.google_service);
-                        switch (gs_re_code) {
-                            case ConnectionResult.SUCCESS:
-                                textView2.setText(R.string.available);
-                                break;
-                            case ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED:
-                                textView2.setText(R.string.update_required);
-                                break;
-                            case ConnectionResult.SERVICE_UPDATING:
-                                textView2.setText(R.string.updating);
-                                break;
-                            default:
-                                textView2.setText(R.string.not_available);
-                                break;
-                        }
-                        layout.setOnClickListener(GS_OCL);
-                    }
-                    textView2.setTextColor(colorArray[i]);
-                    return layout;
-                }
-            });
-        }
-    }
-
-    private void refreshGoogleCV() {
-        googleServiceLVUpdated = false;
-        googleColorArr = checkGoogle();
-        int status_img_color = Color.GREEN;
-        for (int colorint:googleColorArr) {
-            if (colorint == Color.RED) {
-                status_img_color = Color.RED;
-                break;
-            }
-            if (colorint == Color.YELLOW)
-                status_img_color = Color.YELLOW;
-        }
-        switch (status_img_color) {
-            case Color.GREEN:
-                googleStatusImg.setImageResource(R.drawable.baseline_check_circle_outline_24);
-                break;
-            case Color.YELLOW:
-                googleStatusImg.setImageResource(R.drawable.baseline_help_outline_24);
-                break;
-            case Color.RED:
-                googleStatusImg.setImageResource(R.drawable.baseline_highlight_off_24);
-                break;
-            default:
-                break;
-        }
-        googleStatusImg.setColorFilter(status_img_color);
-        if (status_img_color != Color.GREEN) {
-            showGoogleLV(googleColorArr, viewAniCtrl0);
-            googleServiceLVUpdated = true;
-            googleCardViewArrow.setRotation(180);
-        } else {
-            googleServiceView.setVisibility(View.GONE);
-            googleCardViewArrow.setRotation(0);
-        }
-    }
-
-    private void showAppListLV(LayoutAnimationController viewAniCtrl) {
-        if (appDetectListView != null) {
-            appDetectListView.setVisibility(View.VISIBLE);
-            if (viewAniCtrl != null)
-                appDetectListView.setLayoutAnimation(viewAniCtrl);
-            appDetectListView.setAdapter(new BaseAdapter() {
-                @Override
-                public int getCount() {
-                    return blacklist_apps.size() > 0 ? blacklist_apps.size() : 1;
-                }
-
-                @Override
-                public Object getItem(int i) {
-                    return blacklist_apps.size() > 0 ? blacklist_apps.get(i) : null;
-                }
-
-                @Override
-                public long getItemId(int i) {
-                    return i;
-                }
-
-                @Override
-                public View getView(int i, View view, ViewGroup viewGroup) {
-                    RelativeLayout layout;
-                    if (blacklist_apps.size() > 0) {
-                        layout = (RelativeLayout) LayoutInflater.from(MainActivity.this).inflate(R.layout.items, null);
-                        TextView textView1 = (TextView) layout.findViewById(R.id.check_item);
-                        TextView textView2 = (TextView) layout.findViewById(R.id.check_result);
-                        textView1.setText(blacklist_apps.get(i).activityInfo.loadLabel(getPackageManager()));
-                        textView1.setTextColor(Color.RED);
-                        String target_package_name = blacklist_apps.get(i).activityInfo.packageName;
-                        textView2.setText(target_package_name);
-                        textView2.setTextColor(Color.RED);
-                        layout.setOnClickListener(view1 -> {
-                            Intent uninstall_intent = new Intent(Intent.ACTION_DELETE);
-                            uninstall_intent.setData(Uri.parse("package:" + target_package_name));
-                            uninstall_intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            if (target_package_name.equals("com.topjohnwu.magisk"))
-                                new MaterialAlertDialogBuilder(MainActivity.this).setTitle(R.string.magisk_manager_detected).setMessage(R.string.magisk_manager_advice).setNeutralButton(R.string.uninstall_directly, (dialogInterface, i1) -> startActivity(uninstall_intent)).setNegativeButton(R.string.let_it_go_0, null).setPositiveButton(R.string.open_magisk_manager, (dialogInterface, i1) -> {
-                                    PackageManager packageManager = getApplicationContext().getPackageManager();
-                                    Intent open_magisk_manager_intent = packageManager.getLaunchIntentForPackage(target_package_name);
-                                    startActivity(open_magisk_manager_intent);
-                                }).show();
-                            else
-                                startActivity(uninstall_intent);
-                        });
-                    } else {
-                        layout = (RelativeLayout) LayoutInflater.from(MainActivity.this).inflate(R.layout.items_not_selectable, null);
-                        TextView textView1 = (TextView) layout.findViewById(R.id.check_item);
-                        textView1.setText(R.string.black_list_apps_not_found);
-                        textView1.setTextColor(Color.GREEN);
-                    }
-                    return layout;
-                }
-            });
-        }
-    }
-
-    private void refreshAppListCV() {
-        appDetectLVUpdated = false;
-        int status_img_color = Color.GREEN;
-        if (blacklist_apps.size() > 0)
-            status_img_color = Color.RED;
-        switch (status_img_color) {
-            case Color.GREEN:
-                appStatusImg.setImageResource(R.drawable.baseline_check_circle_outline_24);
-                break;
-            case Color.RED:
-                appStatusImg.setImageResource(R.drawable.baseline_highlight_off_24);
-                break;
-            default:
-                break;
-        }
-        appStatusImg.setColorFilter(status_img_color);
-        if (status_img_color != Color.GREEN) {
-            showAppListLV(viewAniCtrl0);
-            appDetectLVUpdated = true;
-            appCardViewArrow.setRotation(180);
-        } else {
-            appDetectListView.setVisibility(View.GONE);
-            appCardViewArrow.setRotation(0);
-        }
-    }
+    DeviceCardView deviceCardView = null;
 
     private void refreshChange() {
 
@@ -955,49 +1286,9 @@ public class MainActivity extends AppCompatActivity {
             mViewModel.initVM();
         }
 
-        if (device_status.size() == 0) {
-            totalMem = mViewModel.getTotalMen();
-            deviceColorArr = new int[2];
-            device_status.add(totalMem);
-            if (totalMem < 1536 * 1024 * 1024)
-                deviceColorArr[0] = Color.RED;
-            else if (getTotalMemory(getApplicationContext()) < (long) 2048 * 1024 * 1024)
-                deviceColorArr[0] = Color.YELLOW;
-            else
-                deviceColorArr[0] = Color.GREEN;
-            instructionset = mViewModel.getInstructionSet();
-            device_status.add(instructionset);
-            if (instructionset.contains("arm") && (instructionset.contains("v7") || instructionset.contains("v8")))
-                deviceColorArr[1] = Color.GREEN;
-            else
-                deviceColorArr[1] = Color.YELLOW;
-            int device_img_color = Color.GREEN;
-            for (int color : deviceColorArr) {
-                if (color == Color.RED) {
-                    device_img_color = Color.RED;
-                    break;
-                } else if (color == Color.YELLOW)
-                    device_img_color = Color.YELLOW;
-            }
-            switch (device_img_color) {
-                case Color.GREEN:
-                    deviceStatusImg.setImageResource(R.drawable.baseline_check_circle_outline_24);
-                    break;
-                case Color.YELLOW:
-                    deviceStatusImg.setImageResource(R.drawable.baseline_help_outline_24);
-                    break;
-                case Color.RED:
-                    deviceStatusImg.setImageResource(R.drawable.baseline_highlight_off_24);
-                    break;
-                default:
-                    break;
-            }
-            deviceStatusImg.setColorFilter(device_img_color);
-            if (device_img_color != Color.GREEN) {
-                showDeviceLV(deviceColorArr, viewAniCtrl0);
-                deviceCardViewArrow.setRotation(180);
-            } else
-                deviceListView.setVisibility(View.GONE);
+        if (deviceCardView == null) {
+            deviceCardView = new DeviceCardView(deviceResultCardView, mViewModel);
+            mcvs.add(deviceCardView);
         }
     }
 }

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<moe.csj430.checkkirafancompatibility.widget.ResultCardView
+    xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <RelativeLayout
+            android:id="@+id/rl_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:background="?android:attr/selectableItemBackground">
+            <ImageView
+                android:id="@+id/status_img"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:visibility="gone" />
+            <androidx.core.widget.ContentLoadingProgressBar
+                android:id="@+id/clpb_rcv"
+                android:layout_toRightOf="@+id/status_img"
+                style="@style/Widget.AppCompat.ProgressBar"
+                android:layout_width="36dp"
+                android:layout_height="36dp" />
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/clpb_rcv"
+                android:gravity="center"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+            <ImageView
+                android:id="@+id/iv_arrow"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_toRightOf="@+id/tv_title"
+                android:layout_centerInParent="true"
+                android:visibility="gone"
+                android:src="@android:drawable/arrow_down_float" />
+            <ImageView
+                android:id="@+id/iv_refresh"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_toLeftOf="@+id/iv_info"
+                android:visibility="gone"
+                android:src="@android:drawable/ic_menu_rotate" />
+            <ImageView
+                android:id="@+id/iv_info"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:visibility="gone"
+                android:src="@android:drawable/ic_menu_info_details" />
+        </RelativeLayout>
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <net.cachapa.expandablelayout.ExpandableLayout
+                    android:id="@+id/el_detail_0"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:el_expanded="false" />
+                <net.cachapa.expandablelayout.ExpandableLayout
+                    android:id="@+id/el_detail_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:el_expanded="false" />
+                <net.cachapa.expandablelayout.ExpandableLayout
+                    android:id="@+id/el_detail_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:el_expanded="false" />
+            </LinearLayout>
+            <net.cachapa.expandablelayout.ExpandableLayout
+                android:id="@+id/el_info"
+                android:background="@drawable/bg0"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginBottom="8dp"
+                app:el_expanded="false" />
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </LinearLayout>
+</moe.csj430.checkkirafancompatibility.widget.ResultCardView>

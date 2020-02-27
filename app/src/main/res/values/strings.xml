@@ -13,6 +13,8 @@
     <string name="menu_about">关于</string>
     <string name="menu_checkupdate">检查更新</string>
     <string name="menu_settheme">设置主题</string>
+    <string name="share_results">分享检测结果</string>
+    <string name="check_results">检测结果</string>
 
     <string name="light">明亮</string>
     <string name="dark">深色</string>
@@ -30,7 +32,7 @@
 
     <string name="system">系统</string>
     <string name="android_en">Android</string>
-    <string name="android_info_notice">可安装KiraFan的Android版本：4.2以上。推荐使用Android5.0以上的设备进行游戏。\n若检测到系统一些属性为特定的值，KiraFan将不能正常启动。\nUSB调试需处于关闭状态。若USB调试处于开启状态，可点击USB调试条目直接打开开发者选项页面。</string>
+    <string name="android_info_notice">可安装KiraFan的Android版本：4.2以上。推荐使用Android5.0以上的设备进行游戏。\n若检测到系统一些属性为特定的值，KiraFan将不能正常启动。\nUSB调试需处于关闭状态。若USB调试处于开启状态，可点击USB调试条目直接打开开发者选项页面。\nKiraFan通过检测进程挂载信息检测Magisk，若从其他应用进程的挂载信息中检测到Magisk，系统可能存在漏洞（详见 https://medium.com/@topjohnwu/from-anime-game-to-android-system-security-vulnerability-9b955a182f20 ），请更新Magisk或更新系统。若从本应用进程的挂载信息中检测到Magisk，请确认是否在Magisk Hide中勾选了本应用。\nKiraFan还可能会检测一些可疑的文件和目录。</string>
     <string name="system_prop_detail">系统属性值详情</string>
     <string name="system_prop">系统属性值</string>
     <string name="system_prop_notice">已确认的要求：\npersist.sys.usb.config不能为adb\nro.build.type不能为eng\nro.debuggable需为0\nro.secure不能为0</string>
@@ -39,6 +41,12 @@
     <string name="method_to_modify_system_prop_notice">方法一（推荐）：\n使用Magisk的resetprop：\n在终端模拟器输入su获取root权限，然后输入 resetprop 要修改的属性名 期望的属性值 即可，如果不想每次开机都输一遍可以把命令保存为一个sh文件存至/data/adb/post-fs-data.d/，改权限为0755，开机时Magisk会自动执行。\n\n方法二：\n参考 http://nga.178.com/read.php?tid=12443703 。</string>
     <string name="version">版本</string>
     <string name="usb_debug">USB调试</string>
+    <string name="proc_mounts">进程挂载信息</string>
+    <string name="magisk_found">发现Magisk</string>
+    <string name="magisk_not_found">未发现Magisk</string>
+    <string name="files_may_detected">可能被检测到的文件和目录</string>
+    <string name="found">发现</string>
+    <string name="not_found">未发现</string>
     <string name="on">开启</string>
     <string name="off">关闭</string>
 
@@ -74,7 +82,7 @@
     <string name="project_homepage">项目主页</string>
 
     <string name="google_suite">Google套件</string>
-    <string name="google_info_notice">若Google服务显示为不可用，可能是Google套件未安装、不完整或需要更新。请注意：如果缺失Google套件但系统自带Google服务框架，也可能可以正常启动游戏，但不能课金和用Google账号进行引继。\n点击Google服务条目可查看isGooglePlayServicesAvailable的返回值，如果存在问题还会弹出Google服务的错误对话框。</string>
+    <string name="google_info_notice">若Google服务显示为不可用，可能是Google套件未安装、不完整或版本过旧。请注意：如果缺失Google套件但系统自带Google服务框架，也可能可以正常启动游戏，但不能课金和用Google账号进行引继。\n点击Google服务条目可查看isGooglePlayServicesAvailable的返回值，如果存在问题还会弹出Google服务的错误对话框。</string>
     <string name="google_service">Google服务</string>
     <string name="well">正常</string>
     <string name="abnormal">异常</string>

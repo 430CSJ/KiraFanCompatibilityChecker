@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:kfcc="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/id_menu_share"
+        android:icon="@drawable/baseline_share_24"
+        android:title="@string/share_results"
+        android:visible="false"
+        kfcc:showAsAction="ifRoom|withText" />
     <item android:id="@+id/id_menu_explanation"
         android:icon="@drawable/baseline_info_24"
         android:title="@string/menu_explanation"

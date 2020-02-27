@@ -12,12 +12,12 @@
     <application
         android:name="moe.csj430.checkkirafancompatibility.App"
         android:allowBackup="true"
-        android:icon="@android:drawable/sym_def_app_icon"
+        android:icon="@mipmap/ic_launcher"
         android:label="KiraFan Compatibility Checker"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <uses-library android:name="org.apache.http.legacy" android:required="false"/>
-        <activity android:name="moe.csj430.checkkirafancompatibility.ui.MainActivity" android:configChanges="uiMode">
+        <activity android:name="moe.csj430.checkkirafancompatibility.ui.MainActivity" android:configChanges="uiMode" android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />

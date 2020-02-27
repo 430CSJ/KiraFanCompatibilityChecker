@@ -7,8 +7,8 @@ android {
         applicationId "moe.csj430.checkkirafancompatibility"
         minSdkVersion 14
         targetSdkVersion 29
-        versionCode 20600
-        versionName "2.6.0"
+        versionCode 20999
+        versionName "2.9.9"
         ndk {
             abiFilters 'armeabi', 'x86', 'armeabi-v7a', 'x86_64', 'arm64-v8a'
         }
@@ -40,6 +40,7 @@ dependencies {
     implementation "androidx.cardview:cardview:$cardViewVersion"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion"
+    implementation 'net.cachapa.expandablelayout:expandablelayout:latest.release'
     implementation "com.tencent.bugly:crashreport:$tencentBuglyVersion"
     implementation "com.tencent.bugly:nativecrashreport:$tencentBuglyVersion"
     implementation('com.jrummyapps:android-shell:1.0.1@aar') {

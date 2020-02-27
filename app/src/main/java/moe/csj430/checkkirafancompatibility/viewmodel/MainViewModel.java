@@ -3,10 +3,14 @@ package moe.csj430.checkkirafancompatibility.viewmodel;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.ResolveInfo;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Process;
+import android.util.SparseArray;
+import android.util.SparseIntArray;
 
 import androidx.annotation.Keep;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -17,20 +21,25 @@ import com.unionpay.mobile.device.utils.RootCheckerUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
 import de.robv.android.xposed.XposedBridge;
+import moe.csj430.checkkirafancompatibility.R;
 import moe.csj430.checkkirafancompatibility.util.SystemPropertiesProxy;
 
 import static moe.csj430.checkkirafancompatibility.App.getAppContext;
+import static moe.csj430.checkkirafancompatibility.util.DeviceInfo.BLACK_LIST_APPS_PACKAGE_NAME;
 import static moe.csj430.checkkirafancompatibility.util.DeviceInfo.getBlackListApps;
 import static moe.csj430.checkkirafancompatibility.util.DeviceInfo.getTotalMemory;
 import static moe.csj430.checkkirafancompatibility.util.DeviceInfo.getVersion;
@@ -39,8 +48,8 @@ import static moe.csj430.checkkirafancompatibility.util.DeviceInfo.isUsbDebugOn;
 
 public class MainViewModel extends ViewModel {
 
-    private Long total_men;
-    private String instruction_set;
+    private Long total_men = null;
+    private String instruction_set = null;
     private int system_sdk_int;
     private String system_ver;
     private MutableLiveData<Integer> gs_re_code = new MutableLiveData<>();
@@ -50,9 +59,10 @@ public class MainViewModel extends ViewModel {
     private final FutureTask[] futureTasks = {null, null, null};
     private boolean done[] = {false, false, false};
     private final int ALL_ALLOW = 0777;
+    private int[] statusColors = {Color.RED, Color.YELLOW, Color.GREEN};
 
 
-    public final String[] CHECK_XPOSED_ITEM = {
+    private String[] CHECK_XPOSED_ITEM = {
             "载入Xposed工具类",
             "寻找特征动态链接库",
             "代码堆栈寻找调起者",
@@ -64,15 +74,48 @@ public class MainViewModel extends ViewModel {
             "环境变量特征字判断",
     };
 
-    public final String[] CHECK_PROP_ITEM = {
+    private String[] ROOT_STATUS = {"出错", "未发现Root", "发现Root"};
+
+    private final String[] CHECK_PROP_ITEM = {
             "persist.sys.usb.config",
             "ro.build.type",
             "ro.debuggable",
             "ro.secure"
     };
 
+    private String[] CHECK_SYS_ITEM = {
+            "版本",
+            CHECK_PROP_ITEM[0],
+            CHECK_PROP_ITEM[1],
+            CHECK_PROP_ITEM[2],
+            CHECK_PROP_ITEM[3],
+            "进程挂载信息",
+            "可能被检测到的文件和目录",
+            "USB调试"
+    };
+
+    public String[] getCheckSysItem() {
+        return CHECK_SYS_ITEM;
+    }
+
+    public String[] getCheckXposedItem() {
+        return CHECK_XPOSED_ITEM;
+    }
+
+    public String[] getRootStatus() {
+        return ROOT_STATUS;
+    }
+
+    public String[] getCheckPropItem() {
+        return CHECK_PROP_ITEM;
+    }
+
     private Context app_context = getAppContext();
     private boolean has_init = false;
+
+    public FutureTask[] getFutureTasks() {
+        return futureTasks;
+    }
 
     public String getSystemVer() {
         return system_ver;
@@ -135,13 +178,47 @@ public class MainViewModel extends ViewModel {
                 }
             }
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            statusColors[0] = app_context.getColor(R.color.status_red);
+            statusColors[1] = app_context.getColor(R.color.status_yellow);
+            statusColors[2] = app_context.getColor(R.color.status_green);
+        } else {
+            statusColors[0] = app_context.getResources().getColor(R.color.status_red);
+            statusColors[1] = app_context.getResources().getColor(R.color.status_yellow);
+            statusColors[2] = app_context.getResources().getColor(R.color.status_green);
+        }
         instruction_set = instset.toString();
         checkGsReCode();
+
+        refreshItemText();
 
         boolean test_init = true;
         for (int i = 0; i < 3; ++i)
             test_init = test_init & done[i];
         has_init = test_init;
+    }
+
+    public int[] getStatusColors() {
+        return statusColors;
+    }
+
+    private void refreshItemText() {
+        CHECK_XPOSED_ITEM[0]=app_context.getResources().getString(R.string.load_xposed_toolkit);
+        CHECK_XPOSED_ITEM[1]=app_context.getResources().getString(R.string.search_feature_dll);
+        CHECK_XPOSED_ITEM[2]=app_context.getResources().getString(R.string.code_stack_search_invoker);
+        CHECK_XPOSED_ITEM[3]=app_context.getResources().getString(R.string.check_xposed_install_status);
+        CHECK_XPOSED_ITEM[4]=app_context.getResources().getString(R.string.judge_system_method_hook);
+        CHECK_XPOSED_ITEM[5]=app_context.getResources().getString(R.string.check_virtual_xposed);
+        CHECK_XPOSED_ITEM[6]=app_context.getResources().getString(R.string.search_xposed_runtime_lib);
+        CHECK_XPOSED_ITEM[7]=app_context.getResources().getString(R.string.kernel_search_xposed_link_lib);
+        CHECK_XPOSED_ITEM[8]=app_context.getResources().getString(R.string.judge_envir_variable_chara_word);
+        ROOT_STATUS[0]=app_context.getResources().getString(R.string.get_error);
+        ROOT_STATUS[1]=app_context.getResources().getString(R.string.item_no_root);
+        ROOT_STATUS[2]=app_context.getResources().getString(R.string.item_found_root);
+        CHECK_SYS_ITEM[0]=app_context.getResources().getString(R.string.version);
+        CHECK_SYS_ITEM[5]=app_context.getResources().getString(R.string.proc_mounts);
+        CHECK_SYS_ITEM[6]=app_context.getResources().getString(R.string.files_may_detected);
+        CHECK_SYS_ITEM[7]=app_context.getResources().getString(R.string.usb_debug);
     }
 
     public void checkGsReCode() {
@@ -206,6 +283,14 @@ public class MainViewModel extends ViewModel {
                     tocheckusb = true;
                 ++sysi;
             }
+            String[] checkTarget = new String[]{"magisk"};
+            boolean[] mtmp = checkThisProcessMounts(checkTarget);
+            otherAppProcessMounts = checkOtherAppProcessMounts(checkTarget);
+            boolean findMagisk = (mtmp != null && ((mtmp.length > 0 && mtmp[0]) || (otherAppProcessMounts != null && otherAppProcessMounts.length > 0 && otherAppProcessMounts[0] != null && otherAppProcessMounts[0].size() > 0)));
+            sstatus.add(findMagisk);
+            dPathFile = checkPathFile(new String[]{"xposed"});
+            boolean findDPF = (dPathFile[0] != null && dPathFile[0].size() > 0) || (dPathFile[1] != null && dPathFile[1].size() > 0);
+            sstatus.add(findDPF);
             if (tocheckusb) {
                 sstatus.add(isUsbDebugOn(app_context));
             }
@@ -426,6 +511,157 @@ public class MainViewModel extends ViewModel {
         } catch (Throwable ignored) {
         }
         return false;
+    }
+
+    public final static String[] C_DIRS = {
+            "/",
+            "/data",
+            "/data/data",
+            "/data/local",
+            "/data/local/tmp",
+            "/data/user/0",
+            "/data/misc_ce/0"
+    };
+
+    public final static String[] C_FILES = {
+            "com.sudocode.sudohide/shared_prefs/com.sudocode.sudohide_preferences.xml",
+            "/system/app/superuser.apk",
+            "/system/app/Superuser.apk",
+            "/system/app/SuperUser.apk",
+            "/system/app/SUPERUSER.apk"
+    };
+
+    List<String>[] dPathFile;
+
+    public static List<String>[] checkPathFile(String[] targets) {
+        List<String>[] results = new ArrayList[2];
+        for (String fn : C_FILES)
+            if (new File(fn).exists())
+                results[0].add(fn);
+        Collection<String> appspn = new HashSet<>();
+        for (String pn : BLACK_LIST_APPS_PACKAGE_NAME)
+            appspn.add(pn);
+        Collection<String> blappspn = new HashSet<>(appspn);
+        try {
+            List<PackageInfo> list = getAppContext().getPackageManager().getInstalledPackages(0);
+            for (PackageInfo info : list)
+                appspn.add(info.packageName);
+        } catch (Throwable ignored) {
+        }
+        for (String cd : C_DIRS) {
+            File dir = new File(cd);
+            if (dir.exists() && dir.isDirectory()) {
+                File[] tmplist = dir.listFiles();
+                Stack<File> fileStack = new Stack<>();
+                if (tmplist != null) {
+                    for (File f : tmplist)
+                        fileStack.push(f);
+                }
+                for (String blan : appspn)
+                    fileStack.push(new File(cd + "/" + blan));
+                while (!fileStack.empty()) {
+                    File currf = fileStack.pop();
+                    if (currf.exists()) {
+                        String currfp = null, currfn = currf.getName();
+                        boolean isD = false;
+                        for (String target : targets) {
+                            if (target.equals(currfn))
+                                isD = true;
+                        }
+                        if (isD || blappspn.contains(currfn)) {
+                            try {
+                                currfp = currf.getCanonicalPath();
+                            } catch (IOException ioe) {
+                                ioe.printStackTrace();
+                            }
+                        }
+                        if (currf.isFile()) {
+                            if (currfp != null)
+                                results[0].add(currfp);
+                        } else if (currf.isDirectory()) {
+                            if (currfp != null)
+                                results[1].add(currfp);
+                            tmplist = currf.listFiles();
+                            if (tmplist != null) {
+                                for (File f : tmplist)
+                                    fileStack.push(f);
+                            }
+                            for (String blan : appspn)
+                                fileStack.push(new File(currfp + "/" + blan));
+                        }
+                    }
+                }
+            }
+        }
+        return results;
+    }
+
+    public static boolean[] checkThisProcessMounts(String[] targets) {
+        if (targets == null)
+            return null;
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader("/proc/" + Process.myPid() + "/mounts"));
+            boolean[] results = new boolean[targets.length];
+            for (int i = 0; i < results.length; ++i)
+                results[i] = false;
+            String str = bufferedReader.readLine();
+            StringBuilder strall = new StringBuilder();
+            while (str != null) {
+                strall.append(str);
+                str = bufferedReader.readLine();
+            }
+            bufferedReader.close();
+            for (int i = 0; i < results.length; ++i) {
+                if (strall.toString().contains(targets[i]))
+                    results[i] = true;
+            }
+            return results;
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
+    SparseArray<String>[] otherAppProcessMounts;
+
+    public static SparseArray<String>[] checkOtherAppProcessMounts(String[] targets) {
+        if (targets == null)
+            return null;
+        SparseArray<String>[] results = new SparseArray[targets.length];
+        String prosstr = Shell.run("ps").getStdout();
+        String[] prosinf = prosstr.split("\\n+");
+        List<String> pids = new ArrayList<>();
+        for (int i = 1; i < prosinf.length; ++i) {
+            if (!prosinf[i].contains(String.valueOf(Process.myPid()))) {
+                String[] proitems = prosinf[i].split("\\s+");
+                pids.add(proitems[1]);
+            }
+        }
+        for (int i = 0; i < pids.size(); ++i) {
+            try {
+                BufferedReader bufferedReader = new BufferedReader(new FileReader("/proc/" + pids.get(i) + "/mounts"));
+                String str = bufferedReader.readLine();
+                StringBuilder strall = new StringBuilder();
+                while (str != null) {
+                    strall.append(str);
+                    str = bufferedReader.readLine();
+                }
+                bufferedReader.close();
+                for (int j = 0; j < targets.length; ++j) {
+                    if (strall.toString().contains(targets[j])) {
+                        String cmdstr = null;
+                        try {
+                            BufferedReader bufferedReader1 = new BufferedReader(new FileReader("/proc/" + pids.get(i) + "/cmdline"));
+                            cmdstr = bufferedReader1.readLine();
+                            bufferedReader1.close();
+                        } catch (Throwable ignored) {
+                        }
+                        results[j].put(Integer.parseInt(pids.get(i)), cmdstr);
+                    }
+                }
+            } catch (Throwable ignored){
+            }
+        }
+        return results;
     }
 
     @Keep

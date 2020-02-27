@@ -1,363 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+    android:fitsSystemWindows="false">
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="false">
+            <TextView
+                android:id="@+id/tv_stabar"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                app:layout_scrollFlags="scroll|enterAlways|snap" />
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                android:theme="?attr/actionBarTheme"
+                app:popupTheme="?attr/popupMenuStyle"
+                app:layout_scrollFlags="scroll|enterAlways|snap">
+                <androidx.core.widget.ContentLoadingProgressBar
+                    android:id="@+id/clpb_toolbar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?android:attr/progressBarStyle" />
+            </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.AppBarLayout>
+<androidx.core.widget.NestedScrollView
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="moe.csj430.checkkirafancompatibility.ui.MainActivity">
+    tools:context="moe.csj430.checkkirafancompatibility.ui.MainActivity"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
     <LinearLayout
+        android:id="@+id/ll_main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical" />
 
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-            <ImageView
-                android:id="@+id/device_status_img"
-                android:layout_width="36dp"
-                android:layout_height="36dp" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_toRightOf="@id/device_status_img"
-                android:text="@string/device"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-            <Button
-                android:id="@+id/device_info"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:gravity="center"
-                android:layout_alignParentRight="true"
-                android:background="@android:drawable/ic_menu_info_details" />
-        </RelativeLayout>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:theme="@style/Widget.MaterialComponents.CardView">
-
-            <moe.csj430.checkkirafancompatibility.widget.WrapContentListView
-                android:id="@+id/device_detail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:divider="@null" />
-        </com.google.android.material.card.MaterialCardView>
-            <RelativeLayout
-                android:id="@+id/device_info_arrow_rl"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <ImageView
-                    android:id="@+id/device_info_arrow"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:gravity="center"
-                    android:layout_centerHorizontal="true"
-                    android:background="@android:drawable/arrow_down_float"/>
-            </RelativeLayout>
-    </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/android_cardview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-            <ImageView
-                android:id="@+id/system_status_img"
-                android:layout_width="36dp"
-                android:layout_height="36dp" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_toRightOf="@id/system_status_img"
-                android:text="@string/system"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-            <Button
-                android:id="@+id/system_info_refresh"
-                android:gravity="center"
-                android:layout_toLeftOf="@id/android_info"
-                android:background="@android:drawable/ic_menu_rotate"
-                android:layout_width="36dp"
-                android:layout_height="36dp" />
-            <Button
-                android:id="@+id/android_info"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:gravity="center"
-                android:layout_alignParentRight="true"
-                android:background="@android:drawable/ic_menu_info_details" />
-        </RelativeLayout>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-
-            <moe.csj430.checkkirafancompatibility.widget.WrapContentListView
-                android:id="@+id/android_detail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:divider="@null" />
-        </com.google.android.material.card.MaterialCardView>
-            <RelativeLayout
-                android:id="@+id/system_info_arrow_rl"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <ImageView
-                    android:id="@+id/system_info_arrow"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:gravity="center"
-                    android:layout_centerHorizontal="true"
-                    android:background="@android:drawable/arrow_down_float"/>
-            </RelativeLayout>
-    </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:layout_margin="8dp">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:orientation="horizontal">
-            <ImageView
-                android:id="@+id/root_xposed_status_img"
-                android:layout_width="36dp"
-                android:layout_height="36dp" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_toRightOf="@id/root_xposed_status_img"
-                android:text="@string/xposed_and_root"
-                android:gravity="center"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-            <Button
-                android:id="@+id/root_xposed_info_refresh"
-                android:gravity="center"
-                android:layout_toLeftOf="@id/xposed_and_root_info"
-                android:background="@android:drawable/ic_menu_rotate"
-                android:layout_width="36dp"
-                android:layout_height="36dp" />
-            <Button
-                android:id="@+id/xposed_and_root_info"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_alignParentRight="true"
-                android:background="@android:drawable/ic_menu_info_details"
-                android:gravity="right" />
-        </RelativeLayout>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-
-            <moe.csj430.checkkirafancompatibility.widget.WrapContentListView
-                android:id="@+id/b"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:divider="@null" />
-        </com.google.android.material.card.MaterialCardView>
-            <RelativeLayout
-                android:id="@+id/root_xposed_info_arrow_rl"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <ImageView
-                    android:id="@+id/root_xposed_info_arrow"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:gravity="center"
-                    android:layout_centerHorizontal="true"
-                    android:background="@android:drawable/arrow_down_float"/>
-            </RelativeLayout>
-            </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:layout_margin="8dp">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-            <ImageView
-                android:id="@+id/google_status_img"
-                android:layout_width="36dp"
-                android:layout_height="36dp" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_toRightOf="@id/google_status_img"
-                android:text="@string/google_suite"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-            <Button
-                android:id="@+id/google_info_refresh"
-                android:gravity="center"
-                android:layout_toLeftOf="@id/google_service_info"
-                android:background="@android:drawable/ic_menu_rotate"
-                android:layout_width="36dp"
-                android:layout_height="36dp" />
-            <Button
-                android:id="@+id/google_service_info"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:gravity="center"
-                android:layout_alignParentRight="true"
-                android:background="@android:drawable/ic_menu_info_details" />
-        </RelativeLayout>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-
-            <moe.csj430.checkkirafancompatibility.widget.WrapContentListView
-                android:id="@+id/google_service_detail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:divider="@null" />
-        </com.google.android.material.card.MaterialCardView>
-            <RelativeLayout
-                android:id="@+id/google_info_arrow_rl"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <ImageView
-                    android:id="@+id/google_info_arrow"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:gravity="center"
-                    android:layout_centerHorizontal="true"
-                    android:background="@android:drawable/arrow_down_float"/>
-            </RelativeLayout>
-    </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-            <ImageView
-                android:id="@+id/app_status_img"
-                android:layout_width="36dp"
-                android:layout_height="36dp" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_toRightOf="@id/app_status_img"
-                android:text="@string/app_list"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-            <Button
-                android:id="@+id/app_info_refresh"
-                android:gravity="center"
-                android:layout_toLeftOf="@id/app_detect_info"
-                android:background="@android:drawable/ic_menu_rotate"
-                android:layout_width="36dp"
-                android:layout_height="36dp" />
-            <Button
-                android:id="@+id/app_detect_info"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:gravity="center"
-                android:layout_alignParentRight="true"
-                android:background="@android:drawable/ic_menu_info_details" />
-        </RelativeLayout>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp">
-
-            <moe.csj430.checkkirafancompatibility.widget.WrapContentListView
-                android:id="@+id/app_detect_detail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:divider="@null" />
-        </com.google.android.material.card.MaterialCardView>
-            <RelativeLayout
-                android:id="@+id/app_info_arrow_rl"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <ImageView
-                    android:id="@+id/app_info_arrow"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:gravity="center"
-                    android:layout_centerHorizontal="true"
-                    android:background="@android:drawable/arrow_down_float"/>
-            </RelativeLayout>
-    </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    </LinearLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
