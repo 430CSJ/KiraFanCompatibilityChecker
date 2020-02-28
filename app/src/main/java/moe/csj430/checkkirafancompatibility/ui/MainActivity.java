@@ -23,6 +23,7 @@ import androidx.core.widget.ContentLoadingProgressBar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -48,6 +49,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import net.cachapa.expandablelayout.ExpandableLayout;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import moe.csj430.checkkirafancompatibility.R;
@@ -107,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
                 sb.append(getAppContext().getString(R.string.ram));
                 sb.append("\t");
                 sb.append(tMMB);
-                sb.append("\n");
+                sb.append(" MB\n");
             }
             if (instSet != null) {
                 sb.append(getAppContext().getString(R.string.instructionset_supported));
@@ -211,19 +213,71 @@ public class MainActivity extends AppCompatActivity {
     private static class SystemCardView implements MainCardView {
         @Override
         public String getStr() {
+            if (ci == null)
+                return "";
+            Context context = mResultCardView.getContext();
+            MainViewModel vm = ((MainActivity)context).mViewModel;
             StringBuilder sb = new StringBuilder();
             sb.append(getAppContext().getString(R.string.system));
             sb.append(": \n");
+            String prefix = "- ";
             for (int i = 0; i < 3; ++i) {
                 for (int j = 0; j < cis[i].size(); ++j) {
                     sb.append(cis[i].get(j));
                     sb.append("\t");
                     sb.append(crs[i].get(j));
                     sb.append("\n");
+                    if (cis[i].get(j).equals(ci[5])) {
+                        if (vm.getThisProcessMounts() != null && vm.getThisProcessMounts().length > 0 && vm.getThisProcessMounts()[0]) {
+                            sb.append(prefix);
+                            sb.append(context.getString(R.string.magisk_found_in_this_mounts));
+                            sb.append("\n");
+                        }
+                        SparseArray<String>[] msas = vm.getOtherAppProcessMounts();
+                        if (msas != null && msas.length > 0 && msas[0] != null && msas[0].size() > 0) {
+                            sb.append(prefix);
+                            sb.append(context.getString(R.string.magisk_found_in_other_mounts));
+                            sb.append(": \n");
+                            SparseArray<String> msa = msas[0];
+                            for (int k = 0; k < msa.size(); ++k) {
+                                sb.append(prefix);
+                                sb.append(msa.keyAt(k));
+                                sb.append("\t");
+                                sb.append(msa.valueAt(k));
+                                sb.append("\n");
+                            }
+                        }
+                    } else if (cis[i].get(j).equals(ci[6])) {
+                        Collection<String>[] fdss = vm.getDPathFile();
+                        if (fdss != null && fdss.length >= 2) {
+                            if (fdss[0].size() > 0) {
+                                sb.append(prefix);
+                                sb.append(context.getString(R.string.file_found));
+                                sb.append(": ");
+                                for (String fp : fdss[0]) {
+                                    sb.append(fp);
+                                    sb.append("\t");
+                                }
+                                sb.append("\n");
+                            }
+                            if (fdss[1].size() > 0) {
+                                sb.append(prefix);
+                                sb.append(context.getString(R.string.directory_found));
+                                sb.append(": ");
+                                for (String dp : fdss[1]) {
+                                    sb.append(dp);
+                                    sb.append("\t");
+                                }
+                                sb.append("\n");
+                            }
+                        }
+                    }
                 }
             }
             return sb.toString();
         }
+
+        private String[] ci;
 
         @Override
         public boolean getIsLoading() {
@@ -242,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
             return mResultCardView;
         }
 
-        public void setResultCardView(ResultCardView resultCardView) {
+        private void setResultCardView(ResultCardView resultCardView) {
             this.mResultCardView = resultCardView;
         }
 
@@ -329,7 +383,7 @@ public class MainActivity extends AppCompatActivity {
 
         private void refresh(MainViewModel viewModel) {
             int[] carr = checkSystem(viewModel);
-            String[] ci = viewModel.getCheckSysItem();
+            ci = viewModel.getCheckSysItem();
             for (List<String> ls : cis)
                 ls.clear();
             for (List<String> lr : crs)
@@ -398,11 +452,56 @@ public class MainActivity extends AppCompatActivity {
                         } else if (cis[ii].get(position).equals(ci[5])) {
                             if (ii < 2) {
                                 layout = (RelativeLayout)inflater.inflate(R.layout.items, parent, false);
+                                layout.setOnClickListener(v -> {
+                                    StringBuilder msb = new StringBuilder();
+                                    boolean[] hasThisMount = viewModel.getThisProcessMounts();
+                                    if (hasThisMount != null && hasThisMount.length > 0 && hasThisMount[0]) {
+                                        msb.append(acontext.getString(R.string.magisk_found_in_this_mounts));
+                                        msb.append("\n\n");
+                                    }
+                                    SparseArray<String>[] otherMounts = viewModel.getOtherAppProcessMounts();
+                                    if (otherMounts != null && otherMounts.length > 0 && otherMounts[0] != null && otherMounts[0].size() > 0) {
+                                        msb.append(acontext.getString(R.string.magisk_found_in_other_mounts));
+                                        msb.append(": \n");
+                                        for (int i = 0; i < otherMounts[0].size(); ++i) {
+                                            msb.append(otherMounts[0].keyAt(i));
+                                            msb.append("\t");
+                                            msb.append(otherMounts[0].valueAt(i));
+                                            msb.append("\n");
+                                        }
+                                    }
+                                    new MaterialAlertDialogBuilder(acontext).setTitle(cis[ii].get(position)).setMessage(msb).setPositiveButton(R.string.know_it, null).create().show();
+                                });
                             } else
                                 layout = (RelativeLayout)inflater.inflate(R.layout.items_not_selectable, parent, false);
                         } else if (cis[ii].get(position).equals(ci[6])) {
                             if (ii < 2) {
                                 layout = (RelativeLayout)inflater.inflate(R.layout.items, parent, false);
+                                layout.setOnClickListener(v -> {
+                                    StringBuilder asb = new StringBuilder();
+                                    Collection<String>[] dfp = viewModel.getDPathFile();
+                                    if (dfp != null && dfp.length >= 2) {
+                                        if (dfp[0].size() > 0) {
+                                            asb.append(acontext.getString(R.string.file_found));
+                                            asb.append(": \n");
+                                            for (String fp : dfp[0]) {
+                                                asb.append(fp);
+                                                asb.append("\t");
+                                            }
+                                            asb.append("\n\n");
+                                        }
+                                        if (dfp[1].size() > 0) {
+                                            asb.append(acontext.getString(R.string.directory_found));
+                                            asb.append(": \n");
+                                            for (String dp : dfp[1]) {
+                                                asb.append(dp);
+                                                asb.append("\t");
+                                            }
+                                            asb.append("\n");
+                                        }
+                                    }
+                                    new MaterialAlertDialogBuilder(acontext).setTitle(cis[ii].get(position)).setMessage(asb).setPositiveButton(R.string.know_it, null).create().show();
+                                });
                             } else
                                 layout = (RelativeLayout)inflater.inflate(R.layout.items_not_selectable, parent, false);
                         } else
@@ -542,7 +641,7 @@ public class MainActivity extends AppCompatActivity {
             return mResultCardView;
         }
 
-        public void setResultCardView(ResultCardView resultCardView) {
+        private void setResultCardView(ResultCardView resultCardView) {
             this.mResultCardView = resultCardView;
         }
 
@@ -735,7 +834,7 @@ public class MainActivity extends AppCompatActivity {
             return mResultCardView;
         }
 
-        public void setResultCardView(ResultCardView resultCardView) {
+        private void setResultCardView(ResultCardView resultCardView) {
             this.mResultCardView = resultCardView;
         }
 
@@ -893,7 +992,7 @@ public class MainActivity extends AppCompatActivity {
             return mResultCardView;
         }
 
-        public void setResultCardView(ResultCardView resultCardView) {
+        private void setResultCardView(ResultCardView resultCardView) {
             this.mResultCardView = resultCardView;
         }
 

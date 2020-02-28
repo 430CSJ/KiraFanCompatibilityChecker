@@ -10,6 +10,7 @@ import android.util.SparseArray;
 import android.util.SparseIntArray;
 
 import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -27,7 +28,9 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
@@ -267,6 +270,12 @@ public class MainViewModel extends ViewModel {
 
     private final CheckThread checkBlacklistAppsThread = new CheckThread<>(new CheckBlacklistAppsThread());
 
+    private boolean[] thisProcessMounts = null;
+
+    public boolean[] getThisProcessMounts() {
+        return thisProcessMounts;
+    }
+
     private class CheckSysThread implements Callable<Void> {
         @Override
         public Void call() throws Exception {
@@ -284,11 +293,11 @@ public class MainViewModel extends ViewModel {
                 ++sysi;
             }
             String[] checkTarget = new String[]{"magisk"};
-            boolean[] mtmp = checkThisProcessMounts(checkTarget);
+            thisProcessMounts = checkThisProcessMounts(checkTarget);
             otherAppProcessMounts = checkOtherAppProcessMounts(checkTarget);
-            boolean findMagisk = (mtmp != null && ((mtmp.length > 0 && mtmp[0]) || (otherAppProcessMounts != null && otherAppProcessMounts.length > 0 && otherAppProcessMounts[0] != null && otherAppProcessMounts[0].size() > 0)));
+            boolean findMagisk = (thisProcessMounts != null && ((thisProcessMounts.length > 0 && thisProcessMounts[0])) || (otherAppProcessMounts != null && otherAppProcessMounts.length > 0 && otherAppProcessMounts[0] != null && otherAppProcessMounts[0].size() > 0));
             sstatus.add(findMagisk);
-            dPathFile = checkPathFile(new String[]{"xposed"});
+            dPathFile = checkPathFile(Arrays.asList("su", "xposed"));
             boolean findDPF = (dPathFile[0] != null && dPathFile[0].size() > 0) || (dPathFile[1] != null && dPathFile[1].size() > 0);
             sstatus.add(findDPF);
             if (tocheckusb) {
@@ -513,8 +522,7 @@ public class MainViewModel extends ViewModel {
         return false;
     }
 
-    public final static String[] C_DIRS = {
-            "/",
+    private final static String[] C_DIRS = {
             "/data",
             "/data/data",
             "/data/local",
@@ -523,7 +531,7 @@ public class MainViewModel extends ViewModel {
             "/data/misc_ce/0"
     };
 
-    public final static String[] C_FILES = {
+    private final static String[] C_FILES = {
             "com.sudocode.sudohide/shared_prefs/com.sudocode.sudohide_preferences.xml",
             "/system/app/superuser.apk",
             "/system/app/Superuser.apk",
@@ -531,64 +539,95 @@ public class MainViewModel extends ViewModel {
             "/system/app/SUPERUSER.apk"
     };
 
-    List<String>[] dPathFile;
+    private Collection<String>[] dPathFile;
 
-    public static List<String>[] checkPathFile(String[] targets) {
-        List<String>[] results = new ArrayList[2];
-        for (String fn : C_FILES)
-            if (new File(fn).exists())
-                results[0].add(fn);
-        Collection<String> appspn = new HashSet<>();
-        for (String pn : BLACK_LIST_APPS_PACKAGE_NAME)
-            appspn.add(pn);
-        Collection<String> blappspn = new HashSet<>(appspn);
+    public Collection<String>[] getDPathFile() {
+        return dPathFile;
+    }
+
+    private static Collection<String>[] checkPathFile(@NonNull List<String> targets) {
+        Collection<String>[] results = new HashSet[2];
+        results[0] = new HashSet<>();
+        results[1] = new HashSet<>();
+        for (String fn : C_FILES) {
+            File f = new File(fn);
+            if (f.exists()) {
+                if (f.isDirectory())
+                    results[1].add(fn);
+                else
+                    results[0].add(fn);
+            }
+        }
+        List<String> blappspn = new ArrayList<>(Arrays.asList(BLACK_LIST_APPS_PACKAGE_NAME));
+        Collection<String> appspn = new HashSet<>(blappspn);
         try {
             List<PackageInfo> list = getAppContext().getPackageManager().getInstalledPackages(0);
             for (PackageInfo info : list)
                 appspn.add(info.packageName);
         } catch (Throwable ignored) {
         }
+        Stack<File> fileStack = new Stack<>();
+        for (String pn : appspn) {
+            String fn = "/" + pn;
+            File fd = new File(fn);
+            if (fd.exists()) {
+                if (blappspn.contains(pn)) {
+                    if (fd.isDirectory())
+                        results[1].add(fn);
+                    else
+                        results[0].add(fn);
+                } else
+                    fileStack.push(fd);
+            }
+        }
+        while (!fileStack.empty()) {
+            File currfd = fileStack.pop();
+            String currfn = currfd.getName();
+            if (targets.contains(currfn) || blappspn.contains(currfn)) {
+                if (currfd.isDirectory())
+                    results[1].add(currfd.getAbsolutePath());
+                else
+                    results[0].add(currfd.getAbsolutePath());
+            } else if (currfd.exists() && currfd.isDirectory()) {
+                File[] tmpfl = currfd.listFiles();
+                if (tmpfl != null)
+                    fileStack.addAll(Arrays.asList(tmpfl));
+            }
+        }
         for (String cd : C_DIRS) {
+            for (String pn : appspn) {
+                File fd = new File(cd + "/" + pn);
+                if (fd.exists()) {
+                    if (blappspn.contains(pn)) {
+                        if (fd.isDirectory())
+                            results[1].add(fd.getAbsolutePath());
+                        else
+                            results[0].add(fd.getAbsolutePath());
+                    } else
+                        fileStack.push(fd);
+                }
+            }
             File dir = new File(cd);
             if (dir.exists() && dir.isDirectory()) {
                 File[] tmplist = dir.listFiles();
-                Stack<File> fileStack = new Stack<>();
                 if (tmplist != null) {
                     for (File f : tmplist)
                         fileStack.push(f);
                 }
-                for (String blan : appspn)
-                    fileStack.push(new File(cd + "/" + blan));
-                while (!fileStack.empty()) {
-                    File currf = fileStack.pop();
-                    if (currf.exists()) {
-                        String currfp = null, currfn = currf.getName();
-                        boolean isD = false;
-                        for (String target : targets) {
-                            if (target.equals(currfn))
-                                isD = true;
-                        }
-                        if (isD || blappspn.contains(currfn)) {
-                            try {
-                                currfp = currf.getCanonicalPath();
-                            } catch (IOException ioe) {
-                                ioe.printStackTrace();
-                            }
-                        }
-                        if (currf.isFile()) {
-                            if (currfp != null)
-                                results[0].add(currfp);
-                        } else if (currf.isDirectory()) {
-                            if (currfp != null)
-                                results[1].add(currfp);
-                            tmplist = currf.listFiles();
-                            if (tmplist != null) {
-                                for (File f : tmplist)
-                                    fileStack.push(f);
-                            }
-                            for (String blan : appspn)
-                                fileStack.push(new File(currfp + "/" + blan));
-                        }
+            }
+            while (!fileStack.empty()) {
+                File currf = fileStack.pop();
+                String currfn = currf.getName();
+                if (targets.contains(currfn) || blappspn.contains(currfn)) {
+                    if (currf.isDirectory())
+                        results[1].add(currf.getAbsolutePath());
+                    else
+                        results[0].add(currf.getAbsolutePath());
+                } else if (currf.exists() && currf.isDirectory()) {
+                    File[] tmpfl = currf.listFiles();
+                    if (tmpfl != null) {
+                        for (File f : tmpfl)
+                            fileStack.push(f);
                     }
                 }
             }
@@ -596,7 +635,7 @@ public class MainViewModel extends ViewModel {
         return results;
     }
 
-    public static boolean[] checkThisProcessMounts(String[] targets) {
+    private static boolean[] checkThisProcessMounts(String[] targets) {
         if (targets == null)
             return null;
         try {
@@ -621,12 +660,18 @@ public class MainViewModel extends ViewModel {
         return null;
     }
 
-    SparseArray<String>[] otherAppProcessMounts;
+    private SparseArray<String>[] otherAppProcessMounts;
 
-    public static SparseArray<String>[] checkOtherAppProcessMounts(String[] targets) {
+    public SparseArray<String>[] getOtherAppProcessMounts() {
+        return otherAppProcessMounts;
+    }
+
+    private static SparseArray<String>[] checkOtherAppProcessMounts(String[] targets) {
         if (targets == null)
             return null;
         SparseArray<String>[] results = new SparseArray[targets.length];
+        for (SparseArray<String> sa : results)
+            sa = new SparseArray<>();
         String prosstr = Shell.run("ps").getStdout();
         String[] prosinf = prosstr.split("\\n+");
         List<String> pids = new ArrayList<>();
