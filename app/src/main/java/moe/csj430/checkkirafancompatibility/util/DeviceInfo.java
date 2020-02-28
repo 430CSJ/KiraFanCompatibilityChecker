@@ -12,7 +12,6 @@ import android.content.pm.ResolveInfo;
 import android.os.Build;
 import android.provider.Settings;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
 import java.io.BufferedReader;
