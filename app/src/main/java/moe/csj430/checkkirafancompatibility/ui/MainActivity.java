@@ -1188,34 +1188,47 @@ public class MainActivity extends AppCompatActivity {
 
         mViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()).create(MainViewModel.class);
 
+        int scrori = getResources().getConfiguration().orientation;
+        LayoutInflater inflater = LayoutInflater.from(this);
+        ResultCardView sysResultCardView, xposedResultCardView, googleResultCardView, baCardView;
         LinearLayout mainLL = findViewById(R.id.ll_main);
-        deviceResultCardView = (ResultCardView)LayoutInflater.from(this).inflate(R.layout.result_cardview, mainLL, false);
-        mainLL.addView(deviceResultCardView);
+        if (scrori == Configuration.ORIENTATION_LANDSCAPE) {
+            LinearLayout mainLLL = findViewById(R.id.ll_main_l), mainLLR = findViewById(R.id.ll_main_r);
+            deviceResultCardView = (ResultCardView)inflater.inflate(R.layout.result_cardview, mainLLL, false);
+            mainLLL.addView(deviceResultCardView);
+            sysResultCardView = (ResultCardView)inflater.inflate(R.layout.result_cardview, mainLLL, false);
+            mainLLL.addView(sysResultCardView);
+            xposedResultCardView = (ResultCardView)inflater.inflate(R.layout.result_cardview, mainLLR, false);
+            mainLLR.addView(xposedResultCardView);
+            googleResultCardView = (ResultCardView)inflater.inflate(R.layout.result_cardview, mainLLL, false);
+            mainLLL.addView(googleResultCardView);
+            baCardView = (ResultCardView)inflater.inflate(R.layout.result_cardview, mainLLR, false);
+            mainLLR.addView(baCardView);
+        } else {
+            deviceResultCardView = (ResultCardView)inflater.inflate(R.layout.result_cardview, mainLL, false);
+            mainLL.addView(deviceResultCardView);
+            sysResultCardView = (ResultCardView)inflater.inflate(R.layout.result_cardview, mainLL, false);
+            mainLL.addView(sysResultCardView);
+            xposedResultCardView = (ResultCardView)inflater.inflate(R.layout.result_cardview, mainLL, false);
+            mainLL.addView(xposedResultCardView);
+            googleResultCardView = (ResultCardView)inflater.inflate(R.layout.result_cardview, mainLL, false);
+            mainLL.addView(googleResultCardView);
+            baCardView = (ResultCardView)inflater.inflate(R.layout.result_cardview, mainLL, false);
+            mainLL.addView(baCardView);
+        }
 
-        ResultCardView sysResultCardView = (ResultCardView)LayoutInflater.from(this).inflate(R.layout.result_cardview, mainLL, false);
-        mainLL.addView(sysResultCardView);
         SystemCardView sysCardView = new SystemCardView(sysResultCardView, mViewModel);
         mcvs.add(sysCardView);
-
-        ResultCardView xposedResultCardView = (ResultCardView)LayoutInflater.from(this).inflate(R.layout.result_cardview, mainLL, false);
-        mainLL.addView(xposedResultCardView);
         XposedCardView xposedCardView = new XposedCardView(xposedResultCardView, mViewModel);
         mcvs.add(xposedCardView);
-
-        ResultCardView googleResultCardView = (ResultCardView)LayoutInflater.from(this).inflate(R.layout.result_cardview, mainLL, false);
-        mainLL.addView(googleResultCardView);
         GoogleCardView googleCardView = new GoogleCardView(googleResultCardView, mViewModel);
         mcvs.add(googleCardView);
-
-        ResultCardView baCardView = (ResultCardView)LayoutInflater.from(this).inflate(R.layout.result_cardview, mainLL, false);
-        mainLL.addView(baCardView);
         BlackAppCardView blackAppCardView = new BlackAppCardView(baCardView, mViewModel);
         mcvs.add(blackAppCardView);
 
         TextView tvbtm = new TextView(this);
         LinearLayout.LayoutParams mainLLL = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, getResources().getDimensionPixelSize(getResources().getIdentifier("navigation_bar_height", "dimen", "android")));
         mainLL.addView(tvbtm, mainLLL);
-
 
         new UpdateTask(MainActivity.this, true, false).update();
     }
