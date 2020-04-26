@@ -78,6 +78,7 @@ public class MainViewModel extends ViewModel {
     private final String[] CHECK_PROP_ITEM = {
             "persist.sys.usb.config",
             "ro.build.type",
+            "ro.build.tags",
             "ro.debuggable",
             "ro.secure"
     };
@@ -88,6 +89,7 @@ public class MainViewModel extends ViewModel {
             CHECK_PROP_ITEM[1],
             CHECK_PROP_ITEM[2],
             CHECK_PROP_ITEM[3],
+            CHECK_PROP_ITEM[4],
             "进程挂载信息",
             "可能被检测到的文件和目录",
             "USB调试"
@@ -215,9 +217,9 @@ public class MainViewModel extends ViewModel {
         ROOT_STATUS[1]=app_context.getResources().getString(R.string.item_no_root);
         ROOT_STATUS[2]=app_context.getResources().getString(R.string.item_found_root);
         CHECK_SYS_ITEM[0]=app_context.getResources().getString(R.string.version);
-        CHECK_SYS_ITEM[5]=app_context.getResources().getString(R.string.proc_mounts);
-        CHECK_SYS_ITEM[6]=app_context.getResources().getString(R.string.files_may_detected);
-        CHECK_SYS_ITEM[7]=app_context.getResources().getString(R.string.usb_debug);
+        CHECK_SYS_ITEM[6]=app_context.getResources().getString(R.string.proc_mounts);
+        CHECK_SYS_ITEM[7]=app_context.getResources().getString(R.string.files_may_detected);
+        CHECK_SYS_ITEM[8]=app_context.getResources().getString(R.string.usb_debug);
     }
 
     public void checkGsReCode() {
@@ -280,7 +282,7 @@ public class MainViewModel extends ViewModel {
             int sysi = 1;
             boolean tocheckusb = false;
             for (String checkprop : CHECK_PROP_ITEM) {
-                if (sysi <= 2)
+                if (sysi <= 3)
                     sstatus.add(SystemPropertiesProxy.getString(app_context, checkprop));
                 else
                     sstatus.add(SystemPropertiesProxy.getInt(app_context, checkprop, 0));

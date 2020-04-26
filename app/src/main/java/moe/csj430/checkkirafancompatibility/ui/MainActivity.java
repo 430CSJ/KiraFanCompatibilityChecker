@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
                     sb.append("\t");
                     sb.append(crs[i].get(j));
                     sb.append("\n");
-                    if (cis[i].get(j).equals(ci[5])) {
+                    if (cis[i].get(j).equals(ci[6])) {
                         if (vm.getThisProcessMounts() != null && vm.getThisProcessMounts().length > 0 && vm.getThisProcessMounts()[0]) {
                             sb.append(prefix);
                             sb.append(context.getString(R.string.magisk_found_in_this_mounts));
@@ -243,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
                                 sb.append("\n");
                             }
                         }
-                    } else if (cis[i].get(j).equals(ci[6])) {
+                    } else if (cis[i].get(j).equals(ci[7])) {
                         Collection<String>[] fdss = vm.getDPathFile();
                         if (fdss != null && fdss.length >= 2) {
                             if (fdss[0].size() > 0) {
@@ -389,7 +389,7 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 1; i < sys_status.size(); ++i) {
                 if (i <= CHECK_PROP_ITEM.length) {
                     String rs;
-                    if (i <= 2)
+                    if (i <= 3)
                         rs = (String)sys_status.get(i);
                     else
                         rs = String.valueOf((Integer)sys_status.get(i));
@@ -445,7 +445,7 @@ public class MainActivity extends AppCompatActivity {
                                 layout.setOnClickListener(DS_OCL);
                             } else
                                 layout = (RelativeLayout)inflater.inflate(R.layout.items_not_selectable, parent, false);
-                        } else if (cis[ii].get(position).equals(ci[5])) {
+                        } else if (cis[ii].get(position).equals(ci[6])) {
                             if (ii < 2) {
                                 layout = (RelativeLayout)inflater.inflate(R.layout.items, parent, false);
                                 layout.setOnClickListener(v -> {
@@ -470,7 +470,7 @@ public class MainActivity extends AppCompatActivity {
                                 });
                             } else
                                 layout = (RelativeLayout)inflater.inflate(R.layout.items_not_selectable, parent, false);
-                        } else if (cis[ii].get(position).equals(ci[6])) {
+                        } else if (cis[ii].get(position).equals(ci[7])) {
                             if (ii < 2) {
                                 layout = (RelativeLayout)inflater.inflate(R.layout.items, parent, false);
                                 layout.setOnClickListener(v -> {
@@ -550,6 +550,10 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case "ro.build.type":
                         if ("eng".equals(sys_status.get(syss_i)))
+                            colorArray[syss_i] = sct[0];
+                        break;
+                    case "ro.build.tags":
+                        if (!"release-keys".equals(sys_status.get(syss_i)))
                             colorArray[syss_i] = sct[0];
                         break;
                     case "ro.debuggable":
