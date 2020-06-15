@@ -178,6 +178,15 @@ public class MainViewModel extends ViewModel {
                         instset.append(Build.CPU_ABI2);
                 }
             }
+        } else {
+            if (!Build.CPU_ABI.equals("")) {
+                instset.append(Build.CPU_ABI);
+                if (!Build.CPU_ABI2.equals(""))
+                    instset.append(", ").append(Build.CPU_ABI2);
+            } else {
+                if (!Build.CPU_ABI2.equals(""))
+                    instset.append(Build.CPU_ABI2);
+            }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             statusColors[0] = app_context.getColor(R.color.status_red);

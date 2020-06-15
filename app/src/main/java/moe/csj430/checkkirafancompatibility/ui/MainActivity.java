@@ -335,8 +335,8 @@ public class MainActivity extends AppCompatActivity {
             mResultCardView.getProgressBar().show();
             for (ExpandableLayout expandableLayout : mResultCardView.getDetailELs())
                 expandableLayout.collapse();
-            for (Boolean isne : mResultCardView.getNotEmpty())
-                isne = false;
+            for (int i = 0; i < mResultCardView.getNotEmpty().size(); ++i)
+                mResultCardView.getNotEmpty().set(i, false);
         }
 
         private void changeViewAfterRefresh() {
